@@ -14,6 +14,8 @@ if __name__ == '__main__':
     file_path_main_images = 'D:/Prostate_Data/Task05_Prostate/imagesTr'
     file_path_main_labels = 'D:/Prostate_Data/Task05_Prostate/labelsTr'
 
+    save_data_directory = 'prostate_data'
+
     total_slices = 602
 
     N_train = int(total_slices * 0.7)
@@ -140,17 +142,17 @@ if __name__ == '__main__':
 
 
 
-                np.save('prostate_data' + '/' + img_slice_filename, img_slice)
-                np.save('prostate_data' + '/' + label_slice_filename, label_slice)
+                np.save(save_data_directory + '/' + img_slice_filename, img_slice)
+                np.save(save_data_directory + '/' + label_slice_filename, label_slice)
 
                 df_slice_sample = df_slice_sample.append(dict_slice, ignore_index=True)
 
 
 
 
-    df_vol.to_csv('dataframe_volume.csv', index=False)
-    df_slice_sample.to_csv('dataframe_slice.csv', index=False)
-
-    df_vol.to_pickle('dataframe_volume.pickle')
-    df_slice_sample.to_pickle('dataframe_slice.pickle')
+    # df_vol.to_csv('dataframe_volume.csv', index=False)
+    # df_slice_sample.to_csv('dataframe_slice.csv', index=False)
+    #
+    # df_vol.to_pickle('dataframe_volume.pickle')
+    # df_slice_sample.to_pickle('dataframe_slice.pickle')
 
