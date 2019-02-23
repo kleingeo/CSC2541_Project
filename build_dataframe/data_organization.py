@@ -85,7 +85,8 @@ if __name__ == '__main__':
             # No need to resample slice axis only using 2D slices
             img_resampled = resample_to_output(img,
                                                voxel_sizes=[x_resample_size, y_resampled_size, img_pix_size[2]])
-            label_resampled = resample_to_output(img,
+
+            label_resampled = resample_to_output(label,
                                                  voxel_sizes=[x_resample_size, y_resampled_size, img_pix_size[2]],
                                                  order=0)
 
@@ -126,6 +127,13 @@ if __name__ == '__main__':
                 img_slice = img_data[:, :, idx]
                 label_slice = label_data[:, :, idx]
 
+
+                # Ignore slices of both the image and label that are only zero
+                if img_slice.max() == img_slice.min():
+                    continue
+
+                if label_slice.max() == label_slice.min():
+                    continue
 
                 img_slice_filename = 'prostate_' + str(file_split[-1]) + '_slice_' + str(idx) + '.npy'
                 label_slice_filename = 'label_' + str(file_split[-1]) + '_slice_' + str(idx) + '.npy'
