@@ -14,7 +14,7 @@ if __name__ == '__main__':
     file_path_main_images = 'D:/Prostate_Data/Task05_Prostate/imagesTr'
     file_path_main_labels = 'D:/Prostate_Data/Task05_Prostate/labelsTr'
 
-    save_data_directory = 'prostate_data'
+    save_data_directory = '../prostate_data'
 
     total_slices = 602
 
@@ -79,12 +79,15 @@ if __name__ == '__main__':
 
             img_pix_size = img.header['pixdim'][1:4]
 
-
+            x_resample_size = 1
+            y_resampled_size = 1
 
             # No need to resample slice axis only using 2D slices
-            img_resampled = resample_to_output(img, voxel_sizes=[0.625, 0.625, img_pix_size[2]])
-
-            label_resampled = resample_to_output(img, voxel_sizes=[0.625, 0.625, img_pix_size[2]], order=0)
+            img_resampled = resample_to_output(img,
+                                               voxel_sizes=[x_resample_size, y_resampled_size, img_pix_size[2]])
+            label_resampled = resample_to_output(img,
+                                                 voxel_sizes=[x_resample_size, y_resampled_size, img_pix_size[2]],
+                                                 order=0)
 
             img_resampeld_size = img_resampled.shape
             img_resampeld_pix_size = img_resampled.header['pixdim'][1:4]
@@ -150,9 +153,9 @@ if __name__ == '__main__':
 
 
 
-    # df_vol.to_csv('dataframe_volume.csv', index=False)
-    # df_slice_sample.to_csv('dataframe_slice.csv', index=False)
-    #
-    # df_vol.to_pickle('dataframe_volume.pickle')
-    # df_slice_sample.to_pickle('dataframe_slice.pickle')
+    df_vol.to_csv('dataframe_volume.csv', index=False)
+    df_slice_sample.to_csv('dataframe_slice.csv', index=False)
+
+    df_vol.to_pickle('dataframe_volume.pickle')
+    df_slice_sample.to_pickle('dataframe_slice.pickle')
 
