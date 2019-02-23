@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 def pad_data(data, desired_shape):
 
@@ -44,6 +44,58 @@ def pad_data(data, desired_shape):
     return data_padded
 
 
+def crop_images_centered_over_label(img, label, sample_size):
+
+    x_sample_size = sample_size[0]
+    y_sample_size = sample_size[1]
+
+    label_idx = np.argwhere(label > 0)
+
+    (ymin, xmin), (ymax, xmax) = label_idx.min(0), label_idx.max(0) + 1
+
+    xlength = xmax - xmin
+    ylength = ymax - ymin
+
+    # Recenter cropped images
+    hx = int((x_sample_size - xlength) / 2)
+    hy = int((y_sample_size - ylength) / 2)
+
+
+    # Initial index for cropping
+    crop_x0 = xmin - hx
+    crop_y0 = ymin - hy
+
+    # Check indicies for cropping to ensure they are within the image
+
+    # Check to see if ending index is outside image
+    if crop_x0 + x_sample_size > img.shape[0]:
+
+        # If crop ending index is outside the image, adjust initial index based on difference
+        diff_x0 = crop_x0 - (img.shape[0] - x_sample_size)
+
+        crop_x0 = crop_x0 - diff_x0
+
+    # Repeat for y direction
+    if crop_y0 + y_sample_size > img.shape[1]:
+        diff_y0 = crop_y0 - (img.shape[1] - y_sample_size)
+
+        crop_y0 = crop_y0 - diff_y0
+
+    # Ensure initial crop does not have a negative index based on adjustment. If so, set to zero
+    if crop_x0 < 0:
+        crop_x0 = 0
+
+    if crop_y0 < 0:
+        crop_y0 = 0
+
+    crop_x1 = crop_x0 + x_sample_size
+    crop_y1 = crop_y0 + y_sample_size
+
+    cropped_img = img[crop_x0:crop_x1, crop_y0:crop_y1]
+    cropped_label = label[crop_x0:crop_x1, crop_y0:crop_y1]
+
+    return cropped_img, cropped_label
+
 def data_generator(img_filelist, label_filelist, file_path, batch_size, sample_size,
                    shuffle=False, augment=False):
 
@@ -59,35 +111,68 @@ def data_generator(img_filelist, label_filelist, file_path, batch_size, sample_s
 
     # Sample counter
     sample_counter = 0
+    total_skipped = 0
+    x_mean_list = []
+
+
 
     while(True):
 
-        x_batch_hold = np.zeros((batch_size,) + sample_size)
-        y_batch_hold = np.zeros((batch_size,) + sample_size)
+        img_batch_hold = np.zeros((batch_size,) + sample_size)
+        label_batch_hold = np.zeros((batch_size,) + sample_size)
 
         for idx in range(batch_size):
 
             # Once gone through all samples, restart
             if sample_counter >= total_num_samples:
                 sample_counter = 0
+                total_skipped = 0
 
-            x = np.load(file_path + '/' + img_filelist[sample_counter])
-            y = np.load(file_path + '/' + label_filelist[sample_counter])
+            img = np.load(file_path + '/' + img_filelist[sample_counter])
+            label = np.load(file_path + '/' + label_filelist[sample_counter])
+
+            # plt.imshow(x[:, :])
+            # plt.show()
+            #
+            #
+            # x_mean_list.append(x.mean())
+
+            if img.min() == img.max():
+                # total_skipped = total_skipped + 1
+                # print()
+                # print('skipped slice ,', label_filelist[sample_counter])
+                # print()
+                # print('Total skipped = ', total_skipped)
+                # print()
+                sample_counter = sample_counter + 1
+                continue
+
+            img = (img - img.min()) / (img.max() - img.min()) * 255
+
 
             if augment==True:
                 pass
 
-            x = pad_data(x, sample_size)
-            y = pad_data(y, sample_size)
+            img, label = crop_images_centered_over_label(img, label, sample_size)
 
-            x_batch_hold[idx] = x
-            y_batch_hold[idx] = y
+            img = pad_data(img, sample_size)
+            label = pad_data(label, sample_size)
+
+            img_batch_hold[idx, :, :] = img
+            label_batch_hold[idx, :, :] = label
+
+            sample_counter = sample_counter + 1
 
 
-        x_batch_hold = x_batch_hold.astype(np.float32)
-        y_batch_hold = y_batch_hold.astype(np.uint8)
+        img_batch_hold = np.expand_dims(img_batch_hold, axis=-1)
+        # label_batch_hold = np.expand_dims(label_batch_hold, axis=-1)
+        #
+        # img_batch_hold = img_batch_hold.astype(np.float32)
+        # label_batch_hold = label_batch_hold.astype(np.uint8)
+        #
+        # multi_channel = np.stack([img_batch_hold, label_batch_hold], axis=-1)
 
-        yield x_batch_hold, y_batch_hold
+        yield img_batch_hold
 
 
 
@@ -105,4 +190,4 @@ if __name__ == '__main__':
     gen = data_generator(img_filelist, label_filelist, file_path, batch_size=5, sample_size=(256, 256),
                          shuffle=True, augment=False)
 
-    x, y = next(gen)
+    img = next(gen)
