@@ -137,15 +137,6 @@ def data_generator(img_filelist, label_filelist, file_path, batch_size, sample_s
             #
             # x_mean_list.append(x.mean())
 
-            if img.min() == img.max():
-                # total_skipped = total_skipped + 1
-                # print()
-                # print('skipped slice ,', label_filelist[sample_counter])
-                # print()
-                # print('Total skipped = ', total_skipped)
-                # print()
-                sample_counter = sample_counter + 1
-                continue
 
             img = (img - img.min()) / (img.max() - img.min()) * 255
 

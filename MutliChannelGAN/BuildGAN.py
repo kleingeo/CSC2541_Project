@@ -19,20 +19,24 @@ class MuiltiChannelGAN():
     def __init__(self):
 
         tf.random.set_random_seed(1)
-        np.random.seed(1)
+        np.random.seed(10)
 
-        self.batch_size = 50
-        self.sample_size = (128, 128)
+        self.batch_size = 30
+        self.sample_size = (256, 256)
         self.number_channels = 1
 
         self.img_shape = self.sample_size + (self.number_channels,)
 
         self.latent_dim = 100
 
+        patch = int(self.sample_size[0] / 2**4)
+        self.disc_patch = (patch, patch, 1)
+
+
         self.gf = 64
         self.df = 64
 
-        optimizer = keras.optimizers.Adam(0.0001)
+        optimizer = keras.optimizers.Adam(0.0002, 0.5)
 
         # optimizer = keras.optimizers.Adam(1e-4)
 
@@ -52,6 +56,9 @@ class MuiltiChannelGAN():
         # The generator takes noise as input and generates imgs
         z = KL.Input(shape=(self.latent_dim,))
 
+
+
+
         img = self.generator(z)
 
         # For the combined model we will only train the generator
@@ -68,14 +75,15 @@ class MuiltiChannelGAN():
                               optimizer=optimizer)
 
 
+
     def build_generator(self):
 
         momentum = 0.99
 
         noise = KL.Input(shape=(self.latent_dim,))
 
-        x = KL.Dense(512 * 8 * 8, activation='relu')(noise)
-        x = KL.Reshape((8, 8, 512))(x)
+        x = KL.Dense(512 * 16 * 16)(noise)
+        x = KL.Reshape((16, 16, 512))(x)
         x = KL.BatchNormalization()(x)
 
         x = KL.Conv2DTranspose(256, 5, strides=2, padding='same')(x)
@@ -107,6 +115,23 @@ class MuiltiChannelGAN():
 
         momentum = 0.99
         dropout = 0.3
+
+        # x = KL.Conv2D(64, 3, strides=2, padding='same')(img)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        #
+        # x = KL.Conv2D(128, 3, strides=2, padding='same')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        #
+        # x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        #
+        # x = KL.Conv2D(512, 3, strides=2, padding='same')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        #
+        #
+        # x = KL.Conv2D(1, 3, padding='same')(x)
+
+
 
         x = KL.Conv2D(32, 5, strides=2, padding='same')(img)
         x = KL.LeakyReLU(alpha=0.2)(x)
@@ -144,24 +169,31 @@ class MuiltiChannelGAN():
 
         start_time = datetime.datetime.now()
 
-        epochs = 50
+        epochs = 10
 
         sample_interval = 5
 
         file_path = '../prostate_data'
         df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
         img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
+
         label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values
 
-        train_gen = data_generator(img_filelist, label_filelist, file_path, batch_size=self.batch_size, sample_size=self.sample_size,
-                             shuffle=True, augment=False)
+
+
+        batch_step_size = int(len(img_filelist) / self.batch_size)
+
+        train_gen = data_generator(img_filelist[:batch_step_size * self.batch_size],
+                                   label_filelist[:batch_step_size * self.batch_size],
+                                   file_path, batch_size=self.batch_size, sample_size=self.sample_size,
+                                   shuffle=True, augment=False)
 
 
         # Adversarial loss ground truths
         valid = np.ones((self.batch_size, 1))
         fake = np.zeros((self.batch_size, 1))
 
-        batch_step_size = int(len(img_filelist) / self.batch_size)
+
 
         for epoch in range(epochs):
             for batch_i in range(batch_step_size):
@@ -191,18 +223,6 @@ class MuiltiChannelGAN():
 
 
 
-                # -----------------
-                #  Train Generator
-                # -----------------
-
-                noise = np.random.normal(0, 1, (self.batch_size, self.latent_dim))
-
-                # Train the generator (to have the discriminator label samples as valid)
-                g_loss = self.combined.train_on_batch(noise, valid)
-
-
-
-
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
@@ -217,6 +237,17 @@ class MuiltiChannelGAN():
                 d_loss_real = self.discriminator.train_on_batch(imgs, valid)
                 d_loss_fake = self.discriminator.train_on_batch(gen_imgs, fake)
                 d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
+
+
+                # -----------------
+                #  Train Generator
+                # -----------------
+
+                noise = np.random.normal(0, 1, (self.batch_size, self.latent_dim))
+
+                # Train the generator (to have the discriminator label samples as valid)
+                g_loss = self.combined.train_on_batch(noise, valid)
 
 
 
@@ -261,4 +292,12 @@ if __name__ == '__main__':
     gan = MuiltiChannelGAN()
     gan.train()
 
-    noise = np.random.normal(0, 1, (100))
+    noise = np.random.normal(0, 1, (30, 100))
+
+
+    pred_img = gan.generator.predict_on_batch(noise)
+
+    slice_idx = 5
+
+    # plt.imshow(pred_img[slice_idx, :, :, 0])
+    # plt.show()
