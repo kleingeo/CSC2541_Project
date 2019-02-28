@@ -6,13 +6,17 @@ from keras.layers import advanced_activations
 import tensorflow as tf
 
 
+from keras.datasets import mnist
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 import datetime
 
-from MutliChannelGAN.DataGenerator import data_generator
+# from MutliChannelGAN.DataGenerator import data_generator
+
+from MutliChannelGAN.MNIST_Generator import MNIST_Generator as data_generator
 
 class MuiltiChannelGAN():
 
@@ -21,8 +25,10 @@ class MuiltiChannelGAN():
         tf.random.set_random_seed(1)
         np.random.seed(10)
 
-        self.batch_size = 30
-        self.sample_size = (256, 256)
+        self.batch_size = 1024
+        self.epochs = 800
+
+        self.sample_size = (32, 32)
         self.number_channels = 1
 
         self.img_shape = self.sample_size + (self.number_channels,)
@@ -78,32 +84,53 @@ class MuiltiChannelGAN():
 
     def build_generator(self):
 
-        momentum = 0.99
+        momentum = 0.8
 
         noise = KL.Input(shape=(self.latent_dim,))
 
-        x = KL.Dense(512 * 16 * 16)(noise)
-        x = KL.Reshape((16, 16, 512))(x)
-        x = KL.BatchNormalization()(x)
+        x = KL.Dense(128 * 8 * 8)(noise)
+        x = KL.Reshape((8, 8, 128))(x)
+        x = KL.BatchNormalization(momentum=momentum)(x)
 
-        x = KL.Conv2DTranspose(256, 5, strides=2, padding='same')(x)
+        x = KL.Conv2DTranspose(128, 3, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
 
-        x = KL.Conv2DTranspose(128, 5, strides=2, padding='same')(x)
+        x = KL.Conv2DTranspose(64, 3, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
 
-        x = KL.Conv2DTranspose(64, 5, strides=2, padding='same')(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
-        x = KL.Activation('relu')(x)
+        # x = KL.Conv2DTranspose(32, 3, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
 
-        x = KL.Conv2DTranspose(32, 5, strides=2, padding='same')(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
-        x = KL.Activation('relu')(x)
 
         x = KL.Conv2D(self.number_channels, 5, padding='same')(x)
         x = KL.Activation('tanh')(x)
+
+
+        # x = KL.Dense(512 * 2 * 2)(noise)
+        # x = KL.Reshape((2, 2, 512))(x)
+        # x = KL.BatchNormalization()(x)
+        #
+        # x = KL.Conv2DTranspose(256, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
+        #
+        # x = KL.Conv2DTranspose(128, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
+        #
+        # x = KL.Conv2DTranspose(64, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
+        #
+        # x = KL.Conv2DTranspose(32, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
+        #
+        # x = KL.Conv2D(self.number_channels, 5, padding='same')(x)
+        # x = KL.Activation('tanh')(x)
 
         return KM.Model(noise, x)
 
@@ -113,8 +140,8 @@ class MuiltiChannelGAN():
 
         img = KL.Input(shape=self.img_shape)
 
-        momentum = 0.99
-        dropout = 0.3
+        momentum = 0.8
+        dropout = 0.25
 
         # x = KL.Conv2D(64, 3, strides=2, padding='same')(img)
         # x = KL.LeakyReLU(alpha=0.2)(x)
@@ -133,30 +160,30 @@ class MuiltiChannelGAN():
 
 
 
-        x = KL.Conv2D(32, 5, strides=2, padding='same')(img)
+        x = KL.Conv2D(32, 3, strides=2, padding='same')(img)
         x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        x = KL.Dropout(dropout)(x)
 
-        x = KL.Conv2D(64, 5, strides=2, padding='same')(x)
+        x = KL.Conv2D(64, 3, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        x = KL.Dropout(dropout)(x)
 
-        x = KL.Conv2D(128, 5, strides=2, padding='same')(x)
+        x = KL.Conv2D(128, 3, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        x = KL.Dropout(dropout)(x)
 
 
-        x = KL.Conv2D(256, 5, strides=2, padding='same')(x)
+        x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        x = KL.Dropout(dropout)(x)
 
-        x = KL.Conv2D(512, 5, strides=2, padding='same')(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
-        x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        # x = KL.Conv2D(512, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        # # x = KL.Dropout(dropout)(x)
 
         x = KL.Flatten()(x)
 
@@ -169,24 +196,43 @@ class MuiltiChannelGAN():
 
         start_time = datetime.datetime.now()
 
-        epochs = 10
+        sample_interval = 20
 
-        sample_interval = 5
+        # file_path = '../prostate_data'
+        # df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
+        # img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
+        #
+        # label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values
+        #
+        #
+        #
+        # batch_step_size = int(len(img_filelist) / self.batch_size)
+        #
+        # train_gen = data_generator(img_filelist[:batch_step_size * self.batch_size],
+        #                            label_filelist[:batch_step_size * self.batch_size],
+        #                            file_path, batch_size=self.batch_size, sample_size=self.sample_size,
+        #                            shuffle=True, augment=False)
 
-        file_path = '../prostate_data'
-        df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
-        img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
 
-        label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values
+        file_path = 'mnist_train.csv'
 
 
+        batch_step_size = int(60000 / self.batch_size)
 
-        batch_step_size = int(len(img_filelist) / self.batch_size)
+        train_gen = data_generator(file_path, self.batch_size)
 
-        train_gen = data_generator(img_filelist[:batch_step_size * self.batch_size],
-                                   label_filelist[:batch_step_size * self.batch_size],
-                                   file_path, batch_size=self.batch_size, sample_size=self.sample_size,
-                                   shuffle=True, augment=False)
+
+        # Load the dataset
+        (X_train, _), (_, _) = mnist.load_data()
+
+        X_train = np.pad(X_train, ((0, 0), (2, 2), (2, 2)), mode='constant', constant_values=0)
+
+        X_train = (X_train.astype(np.float32) / 127.5) - 1
+        X_train = np.expand_dims(X_train, axis=-1)
+
+        N_sample = X_train.shape[0]
+        N_batch_step = int(N_sample / self.batch_size)
+        # half_batch = int(self.batch_size/2)
 
 
         # Adversarial loss ground truths
@@ -195,32 +241,13 @@ class MuiltiChannelGAN():
 
 
 
-        for epoch in range(epochs):
-            for batch_i in range(batch_step_size):
+        for epoch in range(self.epochs):
+            for batch_i in range(1): #range(batch_step_size):
 
-                # Select a random batch of images
-                imgs = next(train_gen)
-
-
-                # plt.imshow(imgs[0, :, :, 0])
-                # plt.show()
-                #
-                # plt.imshow(imgs[40, :, :, 0])
-                # plt.show()
-                #
-                # plt.imshow(imgs[25, :, :, 0])
-                # plt.show()
-                #
-                # plt.imshow(imgs[30, :, :, 0])
-                # plt.show()
-                #
-                # plt.imshow(imgs[10, :, :, 0])
-                # plt.show()
-                #
-                # plt.imshow(imgs[49, :, :, 0])
-                # plt.show()
-
-
+                # # Select a random batch of images
+                # imgs = next(train_gen)
+                idx = np.random.randint(0, X_train.shape[0], self.batch_size)
+                imgs = X_train[idx]
 
 
                 # ---------------------
@@ -244,7 +271,7 @@ class MuiltiChannelGAN():
                 #  Train Generator
                 # -----------------
 
-                noise = np.random.normal(0, 1, (self.batch_size, self.latent_dim))
+                # noise = np.random.normal(0, 1, (self.batch_size, self.latent_dim))
 
                 # Train the generator (to have the discriminator label samples as valid)
                 g_loss = self.combined.train_on_batch(noise, valid)
@@ -266,8 +293,8 @@ class MuiltiChannelGAN():
                     elapsed_time))
 
                 # If at save interval => save generated image samples
-                if (epoch % sample_interval == 0) and (batch_i == 0):
-                    self.sample_images(epoch)
+                if ((epoch + 1) % sample_interval == 0) and (batch_i == 0):
+                    self.sample_images(epoch + 1)
 
 
     def sample_images(self, epoch):
@@ -275,14 +302,14 @@ class MuiltiChannelGAN():
         noise = np.random.normal(0, 1, (r * c, self.latent_dim))
         gen_imgs = self.generator.predict(noise)
 
-        # # Rescale images 0 - 1
-        # gen_imgs = 0.5 * gen_imgs + 0.5
+        # Rescale images 0 - 1
+        gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i, j].imshow(gen_imgs[cnt, :, :, 0])
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
                 axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("images/%d.png" % epoch)
