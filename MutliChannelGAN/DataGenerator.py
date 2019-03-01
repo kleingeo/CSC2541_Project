@@ -138,7 +138,7 @@ def data_generator(img_filelist, label_filelist, file_path, batch_size, sample_s
             # x_mean_list.append(x.mean())
 
 
-            img = (img - img.min()) / (img.max() - img.min()) * 255
+            img = (img - img.min()) / (img.max()/2 - img.min()) - 1
 
 
             if augment==True:
