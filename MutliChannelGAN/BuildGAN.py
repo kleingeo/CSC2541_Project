@@ -25,7 +25,7 @@ class MuiltiChannelGAN():
         tf.random.set_random_seed(1)
         np.random.seed(10)
 
-        self.batch_size = 90
+        self.batch_size = 156
         self.epochs = 400
 
         self.sample_size = (128, 128)
@@ -33,7 +33,7 @@ class MuiltiChannelGAN():
 
         self.img_shape = self.sample_size + (self.number_channels,)
 
-        self.latent_dim = 200
+        self.latent_dim = 100
 
         patch = int(self.sample_size[0] / 2**4)
         self.disc_patch = (patch, patch, 1)
@@ -42,7 +42,7 @@ class MuiltiChannelGAN():
         self.gf = 64
         self.df = 64
 
-        optimizer = keras.optimizers.Adam(0.0002, 0.5)
+        optimizer = keras.optimizers.Adam(0.0002, 0.5, 0.999)
 
         # optimizer = keras.optimizers.Adam(1e-4)
 
@@ -88,37 +88,47 @@ class MuiltiChannelGAN():
 
         noise = KL.Input(shape=(self.latent_dim,))
 
-        x = KL.Dense(512 * 4 * 4)(noise)
-        x = KL.Reshape((4, 4, 512))(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
+        x = KL.Dense(1024 * 8 * 8)(noise)
+        x = KL.Reshape((8, 8, 1024))(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
 
         x = KL.Conv2DTranspose(512, 5, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
 
         x = KL.Conv2DTranspose(256, 5, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
 
         x = KL.Conv2DTranspose(128, 5, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
 
         x = KL.Conv2DTranspose(64, 5, strides=2, padding='same')(x)
         x = KL.BatchNormalization(momentum=momentum)(x)
         x = KL.Activation('relu')(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
 
-        x = KL.Conv2DTranspose(32, 5, strides=2, padding='same')(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
-        x = KL.Activation('relu')(x)
 
-        # x = KL.Conv2DTranspose(32, 3, strides=2, padding='same')(x)
+        # x = KL.Conv2DTranspose(32, 5, strides=2, padding='same')(x)
         # x = KL.BatchNormalization(momentum=momentum)(x)
         # x = KL.Activation('relu')(x)
 
 
-        x = KL.Conv2D(self.number_channels, 3, padding='same')(x)
+        x = KL.Conv2DTranspose(self.number_channels, 5, padding='same')(x)
         x = KL.Activation('tanh')(x)
+
+
+
+        # x = KL.Conv2DTranspose(64, 5, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.Activation('relu')(x)
+        #
+        # x = KL.Conv2D(self.number_channels, 5, padding='same')(x)
+        # x = KL.Activation('tanh')(x)
 
 
         # x = KL.Dense(512 * 2 * 2)(noise)
@@ -186,11 +196,15 @@ class MuiltiChannelGAN():
         x = KL.LeakyReLU(alpha=0.2)(x)
         x = KL.Dropout(dropout)(x)
 
+        # x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        # x = KL.Dropout(dropout)(x)
 
-        x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
-        x = KL.BatchNormalization(momentum=momentum)(x)
-        x = KL.LeakyReLU(alpha=0.2)(x)
-        x = KL.Dropout(dropout)(x)
+        # x = KL.Conv2D(1024, 3, strides=2, padding='same')(x)
+        # x = KL.BatchNormalization(momentum=momentum)(x)
+        # x = KL.LeakyReLU(alpha=0.2)(x)
+        # x = KL.Dropout(dropout)(x)
 
         # x = KL.Conv2D(512, 5, strides=2, padding='same')(x)
         # x = KL.BatchNormalization(momentum=momentum)(x)

@@ -11,8 +11,8 @@ if __name__ == '__main__':
     # Initialize seed for randomization
     np.random.seed(1)
 
-    file_path_main_images = 'D:/Prostate_Data/Task05_Prostate/imagesTr'
-    file_path_main_labels = 'D:/Prostate_Data/Task05_Prostate/labelsTr'
+    file_path_main_images = 'D:/Geoff_Klein/Prostate_Data/Task05_Prostate/imagesTr'
+    file_path_main_labels = 'D:/Geoff_Klein/Prostate_Data/Task05_Prostate/labelsTr'
 
     save_data_directory = '../prostate_data'
 
@@ -161,9 +161,9 @@ if __name__ == '__main__':
 
 
 
-    df_vol.to_csv('dataframe_volume.csv', index=False)
-    df_slice_sample.to_csv('dataframe_slice.csv', index=False)
-
-    df_vol.to_pickle('dataframe_volume.pickle')
-    df_slice_sample.to_pickle('dataframe_slice.pickle')
+    # df_vol.to_csv('dataframe_volume.csv', index=False)
+    # df_slice_sample.to_csv('dataframe_slice.csv', index=False)
+    #
+    # df_vol.to_pickle('dataframe_volume.pickle')
+    # df_slice_sample.to_pickle('dataframe_slice.pickle')
 
