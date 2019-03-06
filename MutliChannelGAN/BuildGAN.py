@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 import datetime
 
-from MutliChannelGAN.DataGenerator import data_generator
+from MutliChannelGAN.DataGenerator_Brats import data_generator
 #
 # from MutliChannelGAN.MNIST_Generator import MNIST_Generator as data_generator
 
@@ -25,10 +25,10 @@ class MuiltiChannelGAN():
         tf.random.set_random_seed(1)
         np.random.seed(10)
 
-        self.batch_size = 156
+        self.batch_size = 64
         self.epochs = 400
 
-        self.sample_size = (128, 128)
+        self.sample_size = (256, 256)
         self.number_channels = 1
 
         self.img_shape = self.sample_size + (self.number_channels,)
@@ -88,8 +88,8 @@ class MuiltiChannelGAN():
 
         noise = KL.Input(shape=(self.latent_dim,))
 
-        x = KL.Dense(1024 * 8 * 8)(noise)
-        x = KL.Reshape((8, 8, 1024))(x)
+        x = KL.Dense(1024 * 16 * 16)(noise)
+        x = KL.Reshape((16, 16, 1024))(x)
         # x = KL.BatchNormalization(momentum=momentum)(x)
 
         x = KL.Conv2DTranspose(512, 5, strides=2, padding='same')(x)
@@ -224,8 +224,8 @@ class MuiltiChannelGAN():
 
         sample_interval = 25
 
-        file_path = '../prostate_data'
-        df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
+        file_path = '../brats_data'
+        df = pd.read_pickle('../build_dataframe/dataframe_brats_slice.pickle')
         img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
 
         label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values

@@ -62,3 +62,6 @@ target/
 
 # Ignoring Prostate data files
 prostate_data/
+
+# Ignoring Brats data files
+brats_data/
