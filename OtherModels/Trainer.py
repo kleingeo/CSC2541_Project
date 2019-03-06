@@ -7,64 +7,45 @@ WARNING: This file is very hardcoded. Going to need to do some
         editing to generalize it.
 '''
 
-import IUNet
-import UNet
-import VGG
+import OtherModels.IUNet as IUNet
+import OtherModels.UNet as UNet
+import OtherModels.VGG as VGG
 from keras.utils import multi_gpu_model
-from Utils import My_new_loss
-import DGenerator as generator
-import MyCBK
-import TrainerFileNamesUtil as TrainerFileNamesUtil
+from OtherModels.Utils import My_new_loss
+import OtherModels.DataGenerator as generator
+import OtherModels.MyCBK as MyCBK
+import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
+import pandas as pd
 
 class Trainer():
     def __init__(self,
-                 batch_folder,
-                 target_folder,
-                 ofolder,
+                 img_filelist,
+                 label_filelist,
+                 file_path,
+                 batch_size=5,
+                 sample_size=(256, 256),
+                 shuffle=True,
+                 augment=False,
+                 ofolder=None,
                  samples_per_card=None,
                  epochs=50,
-                 batch_size=None,
                  gpus_used=1,
-                 mode = '2Ch',
                  model_type='IUNet'):
-        """
-        The initializer for the trainer object
-        :param batch_folder: folder where training data is stored
-        :param target_folder: fodler where the training targets are stored
-        :param ofolder: the output folder where everything is saved in the end
-        :param samples_per_card: the desired spread of training samples to
-        each gpu card
-        :param epochs:The amount of epochs to be used for training
-        :param batch_size: the batch size desired
-        :param gpus_used: the amount of gpu cards used during training
-        :param mode: Option of input type. '2Ch', 'WOFS, opr 'FS'
-        :param model_type: Model type to be trained. Unet or Inception Unet
-        'IUNet','UNet' or 'VGG'
-        """
-        self.batch_folder = batch_folder
-        self.target_folder = target_folder
+        self.img_filelist = img_filelist
+        self.label_filelist = label_filelist
+        self.file_path = file_path
+        self.batch_size = batch_size
+        self.sample_size = sample_size
+        self.shuffle = shuffle
+        self.augment = augment
         self.ofolder = ofolder
-        if samples_per_card is None:
-            self.batch_size = batch_size
-
-        if batch_size is None:
-            self.batch_size = int(gpus_used*samples_per_card)
-
-        if batch_size is None and samples_per_card is None:
-            print('You have not given sufficient information to run multi GPU '
-                  'training. Please give samples_per_card or batch_size.')
-
+        self.samples_per_card = samples_per_card
         self.epochs = epochs
-        self.mode = mode
-        self.model_type = model_type
         self.gpus_used = gpus_used
+        self.model_type = model_type
 
-    def train_the_model(self,
-                        t_opt = 'ADAM',
-                        t_dilRate = 1,
-                        t_depth = 5,
-                        t_dropOut = 0
-                        ):
+
+    def train_the_model(self):
         """
         Main driver of the trainer
         :param t_opt: Optimizer option
@@ -75,24 +56,26 @@ class Trainer():
         """
         ### Main code
         # start up the data generator
-        gen = generator.DGenerator(data_dir=self.batch_folder,
-                                   target_dir=self.target_folder,
-                                   batch_size=self.batch_size,
-                                   mode=self.mode)
+        gen = generator.data_generator(self.img_filelist,
+                                       self.label_filelist,
+                                       self.file_path,
+                                       self.batch_size,
+                                       self.sample_size,
+                                       self.shuffle,
+                                       self.augment)
 
         # load the model
         if self.model_type is 'IUNet':
-            model = IUNet.get_iunet(mode = self.mode,
-                                    img_x = 512,
+            model = IUNet.get_iunet(img_x = 512,
                                     img_y = 512,
-                                    optimizer = t_opt,
-                                    dilation_rate = t_dilRate,
-                                    depth = t_depth,
+                                    optimizer = 'ADAM',
+                                    dilation_rate = 1,
+                                    depth = 4,
                                     base_filter = 16,
                                     batch_normalization = False,
                                     pool_1d_size = 2,
                                     deconvolution = False,
-                                    dropout = t_dropOut,
+                                    dropout = 0.0,
                                     num_classes=3)
         if self.model_type is 'UNet':
             model = UNet.get_unet(mode = self.mode,
@@ -105,7 +88,7 @@ class Trainer():
                                   batch_normalization = False,
                                   pool_1d_size = 2,
                                   deconvolution = False,
-                                  dropout = t_dropOut,
+                                  dropout = 0.0,
                                   num_classes=3)
 
 
@@ -161,15 +144,35 @@ if __name__ == "__main__":
     #           '/RedoFolder/'
 
     # For Titania
-    batch_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
-                   '/Batches/2D/Training/data/'
-    target_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
-                    '/Batches/2D/Training/target/'
-    ofolder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data/Models' \
-              '/SingleClass2D/'
+    # batch_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
+    #                '/Batches/2D/Training/data/'
+    # target_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
+    #                 '/Batches/2D/Training/target/'
+    # ofolder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data/Models' \
+    #           '/SingleClass2D/'
 
-    a = Trainer(batch_folder, target_folder, ofolder, samples_per_card=5,
-                epochs=10, gpus_used=3, mode='2Ch', model_type='UNet')
+    file_path = '../prostate_data'
+
+    df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
+
+    img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
+
+    label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values
+
+    ofolder = '../OtherModels/model_output'
+
+    a = Trainer(img_filelist,
+                label_filelist,
+                file_path,
+                batch_size=5,
+                sample_size=(256, 256),
+                shuffle=True,
+                augment=False,
+                ofolder=ofolder,
+                samples_per_card=5,
+                epochs=10,
+                gpus_used=1,
+                model_type='UNet')
 
     a.train_the_model(t_opt = 'ADAM',
                       t_dilRate = 1,
