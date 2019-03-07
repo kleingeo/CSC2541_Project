@@ -5,15 +5,13 @@ author: G.Kuling
 This is my UNet code. When get_unet is called, it reutrns a 2D unet with the
 given parameters.
 '''
-from Utils import decide_chnls
 from keras.layers import Input, MaxPooling2D, Conv2D, BatchNormalization, \
     Activation, Deconvolution2D, UpSampling2D, concatenate, Dropout
 from keras.models import Model
 from keras import backend as K
-K.set_image_dim_ordering('th')
+K.set_image_dim_ordering('tf')
 
-def get_unet(mode = '2Ch',
-             img_x = 512,
+def get_unet(img_x = 512,
              img_y = 512,
              optimizer = 'ADAM',
              dilation_rate = 1,
@@ -25,12 +23,13 @@ def get_unet(mode = '2Ch',
              pool_1d_size = 2,
              deconvolution = False,
              dropout = 0,
-             num_classes = 3):
-    num_seq, _ = decide_chnls(mode)
+             num_classes = 3,
+             num_seq = 1):
 
-    model_inputs = Input((num_seq,
-                          img_x,
-                          img_y))
+
+    model_inputs = Input((img_x,
+                          img_y,
+                          num_seq))
 
     kernel_size = (kernel_1d_size, kernel_1d_size)
     dilation_rate = (dilation_rate, dilation_rate)
@@ -66,7 +65,7 @@ def get_unet(mode = '2Ch',
             deconvolution=deconvolution,
             n_filters=current_layer._keras_shape[1])(current_layer)
 
-        concat = concatenate([up_convolution, levels[layer_depth][1]], axis=1)
+        concat = concatenate([up_convolution, levels[layer_depth][1]], axis=-1)
 
         if dropout > 0:
             concat = Dropout(dropout)(concat)

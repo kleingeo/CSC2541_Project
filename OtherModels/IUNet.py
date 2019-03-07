@@ -5,13 +5,11 @@ author: G.Kuling
 This is my Inception UNet code. When get_iunet is called, it reutrns a 2D
 inception unet with the given parameters.
 '''
-from Utils import decide_chnls
 from keras.layers import Input, MaxPooling2D, Conv2D, BatchNormalization, \
     Activation, Deconvolution2D, UpSampling2D, concatenate, Dropout
 from keras.models import Model
 from keras import backend as K
-from Utils import My_new_loss
-K.set_image_dim_ordering('th')
+K.set_image_dim_ordering('tf')
 
 def get_iunet(mode = '2Ch',
              img_x = 512,
@@ -25,7 +23,8 @@ def get_iunet(mode = '2Ch',
              pool_1d_size = 2,
              deconvolution = False,
              dropout = 0,
-             num_classes = 3):
+             num_classes = 3,
+              num_seq = 1):
     """
     The function that build the Inception Unet
     :param mode: (str) the choice of imaging modality. '2Ch', 'WOFS' or 'FS'
@@ -46,11 +45,10 @@ def get_iunet(mode = '2Ch',
     :param num_classes: (int) the amount of output masks needed.
     :return: an Inception UNet
     """
-    num_seq, _ = decide_chnls(mode)
 
-    model_inputs = Input((num_seq,
-                          img_x,
-                          img_y))
+    model_inputs = Input((img_x,
+                          img_y,
+                          num_seq))
 
     dilation_rate = (dilation_rate, dilation_rate)
     pool_size = (pool_1d_size, pool_1d_size)
@@ -80,7 +78,7 @@ def get_iunet(mode = '2Ch',
             deconvolution=deconvolution,
             n_filters=current_layer._keras_shape[1])(current_layer)
 
-        concat = concatenate([up_convolution, levels[layer_depth][0]], axis=1)
+        concat = concatenate([up_convolution, levels[layer_depth][0]], axis=-1)
 
         if dropout > 0:
             concat = Dropout(dropout)(concat)
@@ -99,8 +97,6 @@ def get_iunet(mode = '2Ch',
     act = Activation("sigmoid")(final_convolution)
     model = Model(inputs=model_inputs, outputs=act)
 
-    model.compile(optimizer=optimizer, loss=My_new_loss,
-                  metrics=[My_new_loss])
     print(model.summary())
     return model
 
@@ -161,7 +157,7 @@ def create_inception_block(input_layer,
                 padding='same',
                 kernel_initializer=kernel_initializer,
                 dilation_rate=dilation_rate)(t4)
-    layer = concatenate([t1, t2, t3, t4], axis=1)
+    layer = concatenate([t1, t2, t3, t4], axis=-1)
     if batch_normalization:
         layer = BatchNormalization(axis=1)(layer)
     elif instance_normalization:

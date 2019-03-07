@@ -5,8 +5,8 @@
 """
 import os
 import time
-import outils.GridSearch_Consts as GS_Util
-import outils.filename_constants as fc
+import OtherModels.outils.GridSearch_Consts as GS_Util
+import OtherModels.outils.filename_constants as fc
 
 
 def get_time():

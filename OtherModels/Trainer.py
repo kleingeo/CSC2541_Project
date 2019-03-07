@@ -11,7 +11,7 @@ import OtherModels.IUNet as IUNet
 import OtherModels.UNet as UNet
 import OtherModels.VGG as VGG
 from keras.utils import multi_gpu_model
-from OtherModels.Utils import My_new_loss
+from OtherModels.Utils import dice_loss
 import OtherModels.DataGenerator as generator
 import OtherModels.MyCBK as MyCBK
 import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
@@ -66,8 +66,8 @@ class Trainer():
 
         # load the model
         if self.model_type is 'IUNet':
-            model = IUNet.get_iunet(img_x = 512,
-                                    img_y = 512,
+            model = IUNet.get_iunet(img_x = self.sample_size[0],
+                                    img_y = self.sample_size[1],
                                     optimizer = 'ADAM',
                                     dilation_rate = 1,
                                     depth = 4,
@@ -76,52 +76,64 @@ class Trainer():
                                     pool_1d_size = 2,
                                     deconvolution = False,
                                     dropout = 0.0,
-                                    num_classes=3)
+                                    num_classes=1)
         if self.model_type is 'UNet':
-            model = UNet.get_unet(mode = self.mode,
-                                  img_x = 512,
-                                  img_y = 512,
-                                  optimizer = t_opt,
-                                  dilation_rate = t_dilRate,
-                                  depth = t_depth,
+            model = UNet.get_unet(img_x = self.sample_size[0],
+                                  img_y = self.sample_size[1],
+                                  optimizer = 'ADAM',
+                                  dilation_rate = 1,
+                                  depth = 4,
                                   base_filter = 16,
                                   batch_normalization = False,
                                   pool_1d_size = 2,
                                   deconvolution = False,
                                   dropout = 0.0,
-                                  num_classes=3)
+                                  num_classes=1)
 
 
         if self.model_type is 'VGG':
-            model = VGG.get_VGG(mode = self.mode,
-                                  img_x = 256,
-                                  img_y = 256,
-                                  optimizer = t_opt,
-                                  dilation_rate = t_dilRate,
+            model = VGG.get_vgg(img_x = self.sample_size[0],
+                                img_y = self.sample_size[1],
+                                  optimizer = 'ADAM',
+                                  dilation_rate = 1,
                                   base_filter = 16,
                                   batch_normalization = False,
                                   pool_1d_size = 2,
                                   deconvolution = False,
-                                  dropout = t_dropOut,
-                                  num_classes=3)
+                                  dropout = 0.0,
+                                  num_classes=1)
 
         # setup a multi GPU trainer
-        gmodel = multi_gpu_model(model, gpus=self.gpus_used)
-        gmodel.compile(optimizer=t_opt,
-                       loss=My_new_loss,
-                       metrics=[My_new_loss])
+        if self.gpus_used>1:
+            gmodel = multi_gpu_model(model, gpus=self.gpus_used)
+            gmodel.compile(optimizer='ADAM',
+                           loss=dice_loss,
+                           metrics=[dice_loss])
+            cbk = MyCBK.MyCBK(model, self.ofolder)
+
+            # begin training
+            gmodel.fit_generator(gen,
+                                 epochs=self.epochs,
+                                 verbose=1,
+                                 steps_per_epoch=100,
+                                 workers=20,
+                                 use_multiprocessing=True,
+                                 callbacks=[cbk])
+        else:
+            gmodel = model
+            gmodel.compile(optimizer='ADAM',
+                           loss=dice_loss,
+                           metrics=[dice_loss])
+            cbk = MyCBK.MyCBK(model, self.ofolder)
+
+            # begin training
+            gmodel.fit_generator(gen,
+                                 epochs=self.epochs,
+                                 verbose=1,
+                                 steps_per_epoch=100,
+                                 callbacks=[cbk])
 
         # model check points, save the best weights
-        cbk = MyCBK.MyCBK(model, self.ofolder)
-
-        # begin training
-        gmodel.fit_generator(gen,
-                             epochs=self.epochs,
-                             verbose=1,
-                             steps_per_epoch=610,
-                             workers=20,
-                             use_multiprocessing=True,
-                             callbacks=[cbk])
 
         model_json = model.to_json()
         with open(TrainerFileNamesUtil.create_model_json_filename(
@@ -170,14 +182,11 @@ if __name__ == "__main__":
                 augment=False,
                 ofolder=ofolder,
                 samples_per_card=5,
-                epochs=10,
+                epochs=1,
                 gpus_used=1,
-                model_type='UNet')
+                model_type='VGG')
 
-    a.train_the_model(t_opt = 'ADAM',
-                      t_dilRate = 1,
-                      t_depth = 5,
-                      t_dropOut = 0.0)
+    a.train_the_model()
 
 
     print('done')
