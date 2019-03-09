@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy as scpy
+from skimage.transform import resize
 
 def pad_data(data, desired_shape):
 
@@ -49,8 +51,8 @@ def crop_images_centered_over_label(img, label, sample_size):
     x_sample_size = sample_size[0]
     y_sample_size = sample_size[1]
 
-    if label.min() == 0:
-        print()
+    # if label.min() == 0:
+
 
     label_idx = np.argwhere(label > 0)
 
@@ -149,6 +151,8 @@ def data_generator(img_filelist, label_filelist, file_path, batch_size, sample_s
 
 
             img, label = crop_images_centered_over_label(img, label, sample_size)
+
+            # img = resize(img, output_shape=[int(img.shape[0]/2), (img.shape[1]/2)], order=1)
 
             img = pad_data(img, sample_size)
             label = pad_data(label, sample_size)

@@ -196,10 +196,10 @@ class MuiltiChannelGAN():
         x = KL.LeakyReLU(alpha=0.2)(x)
         x = KL.Dropout(dropout)(x)
 
-        # x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
-        # x = KL.BatchNormalization(momentum=momentum)(x)
-        # x = KL.LeakyReLU(alpha=0.2)(x)
-        # x = KL.Dropout(dropout)(x)
+        x = KL.Conv2D(256, 3, strides=2, padding='same')(x)
+        x = KL.BatchNormalization(momentum=momentum)(x)
+        x = KL.LeakyReLU(alpha=0.2)(x)
+        x = KL.Dropout(dropout)(x)
 
         # x = KL.Conv2D(1024, 3, strides=2, padding='same')(x)
         # x = KL.BatchNormalization(momentum=momentum)(x)
@@ -222,7 +222,7 @@ class MuiltiChannelGAN():
 
         start_time = datetime.datetime.now()
 
-        sample_interval = 25
+        sample_interval = 1
 
         file_path = '../brats_data'
         df = pd.read_pickle('../build_dataframe/dataframe_brats_slice.pickle')
