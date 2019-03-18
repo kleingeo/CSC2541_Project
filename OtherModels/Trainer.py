@@ -10,12 +10,15 @@ WARNING: This file is very hardcoded. Going to need to do some
 import OtherModels.IUNet as IUNet
 import OtherModels.UNet as UNet
 import OtherModels.VGG as VGG
+import OtherModels.ResNet as ResNet
+import OtherModels.VNet as VNet
 from keras.utils import multi_gpu_model
 from OtherModels.Utils import dice_loss
 import OtherModels.DataGenerator as generator
 import OtherModels.MyCBK as MyCBK
 import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
 import pandas as pd
+import sys
 
 class Trainer():
     def __init__(self,
@@ -23,7 +26,7 @@ class Trainer():
                  label_filelist,
                  file_path,
                  batch_size=5,
-                 sample_size=(256, 256),
+                 sample_size=(256, 256, 1),
                  shuffle=True,
                  augment=False,
                  ofolder=None,
@@ -60,7 +63,8 @@ class Trainer():
                                        self.label_filelist,
                                        self.file_path,
                                        self.batch_size,
-                                       self.sample_size,
+                                       (self.sample_size[0],
+                                        self.sample_size[1]),
                                        self.shuffle,
                                        self.augment)
 
@@ -68,40 +72,51 @@ class Trainer():
         if self.model_type is 'IUNet':
             model = IUNet.get_iunet(img_x = self.sample_size[0],
                                     img_y = self.sample_size[1],
-                                    optimizer = 'ADAM',
                                     dilation_rate = 1,
-                                    depth = 4,
+                                    depth = 5,
                                     base_filter = 16,
                                     batch_normalization = False,
                                     pool_1d_size = 2,
                                     deconvolution = False,
                                     dropout = 0.0,
-                                    num_classes=1)
+                                    num_classes=1,
+                                    num_seq=self.sample_size[-1])
         if self.model_type is 'UNet':
             model = UNet.get_unet(img_x = self.sample_size[0],
                                   img_y = self.sample_size[1],
-                                  optimizer = 'ADAM',
                                   dilation_rate = 1,
-                                  depth = 4,
+                                  depth = 5,
                                   base_filter = 16,
                                   batch_normalization = False,
                                   pool_1d_size = 2,
                                   deconvolution = False,
                                   dropout = 0.0,
-                                  num_classes=1)
-
-
+                                  num_classes=1,
+                                  num_seq=self.sample_size[-1])
         if self.model_type is 'VGG':
             model = VGG.get_vgg(img_x = self.sample_size[0],
                                 img_y = self.sample_size[1],
-                                  optimizer = 'ADAM',
+                                dropout = 0.0,
+                                num_classes = 1,
+                                num_seq = self.sample_size[-1])
+        if self.model_type is 'ResNet':
+            model = ResNet.get_resnet(img_x = self.sample_size[0],
+                                      img_y = self.sample_size[1],
+                                      f=16,
+                                      bn_axis=3,
+                                      num_classes=1,
+                                      num_seq = self.sample_size[-1])
+        if self.model_type is 'VNet':
+            model = VNet.get_vnet(img_x = self.sample_size[0],
+                                  img_y = self.sample_size[1],
                                   dilation_rate = 1,
-                                  base_filter = 16,
+                                  depth = 5,
                                   batch_normalization = False,
-                                  pool_1d_size = 2,
                                   deconvolution = False,
                                   dropout = 0.0,
-                                  num_classes=1)
+                                  num_classes=1,
+                                  num_seq=self.sample_size[-1])
+
 
         # setup a multi GPU trainer
         if self.gpus_used>1:
@@ -177,14 +192,14 @@ if __name__ == "__main__":
                 label_filelist,
                 file_path,
                 batch_size=5,
-                sample_size=(256, 256),
+                sample_size=(256, 256, 1),
                 shuffle=True,
                 augment=False,
                 ofolder=ofolder,
                 samples_per_card=5,
                 epochs=1,
                 gpus_used=1,
-                model_type='VGG')
+                model_type='IUNet')
 
     a.train_the_model()
 

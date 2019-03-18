@@ -11,19 +11,17 @@ from keras.models import Model
 from keras import backend as K
 K.set_image_dim_ordering('tf')
 
-def get_iunet(mode = '2Ch',
-             img_x = 512,
-             img_y = 512,
-             optimizer = 'ADAM',
-             dilation_rate = 1,
-             kernel_initializer = 'glorot_uniform',
-             depth = 5,
-             base_filter = 16,
-             batch_normalization = False,
-             pool_1d_size = 2,
-             deconvolution = False,
-             dropout = 0,
-             num_classes = 3,
+def get_iunet(img_x = 512,
+              img_y = 512,
+              dilation_rate = 1,
+              kernel_initializer = 'glorot_uniform',
+              depth = 5,
+              base_filter = 16,
+              batch_normalization = False,
+              pool_1d_size = 2,
+              deconvolution = False,
+              dropout = 0,
+              num_classes = 1,
               num_seq = 1):
     """
     The function that build the Inception Unet
@@ -92,8 +90,7 @@ def get_iunet(mode = '2Ch',
 
 
     ### Finish off the Output and Optimize
-    n_labels = num_classes
-    final_convolution = Conv2D(n_labels, (1, 1))(current_layer)
+    final_convolution = Conv2D(num_classes, (1, 1))(current_layer)
     act = Activation("sigmoid")(final_convolution)
     model = Model(inputs=model_inputs, outputs=act)
 

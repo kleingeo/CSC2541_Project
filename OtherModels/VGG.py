@@ -17,7 +17,8 @@ K.set_image_dim_ordering('tf')
 def get_vgg(img_x = 256,
             img_y = 256,
             dropout = 0,
-            num_seq = 1):
+            num_seq = 1,
+            num_classes=1):
 
 
     model_inputs = Input((img_x,
@@ -94,7 +95,7 @@ def get_vgg(img_x = 256,
     o = (Conv2D(64, (3, 3), padding='valid'))(o)
     o = (BatchNormalization())(o)
 
-    o = Conv2D(1, (3, 3), padding='same')(o)
+    o = Conv2D(num_classes, (3, 3), padding='same')(o)
     o = (Activation('softmax'))(o)
     model = Model(model_inputs, o)
 
