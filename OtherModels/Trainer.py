@@ -184,7 +184,7 @@ if __name__ == "__main__":
                 samples_per_card=5,
                 epochs=1,
                 gpus_used=1,
-                model_type='UNet')
+                model_type='VGG')
 
     a.train_the_model()
 

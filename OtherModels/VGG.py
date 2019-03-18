@@ -1,6 +1,7 @@
 '''
 2019-03-02
 author: Phil Boyer
+edited: G. Kuling
 Simple implementation of VGG as in 2014 paper (with no opportunity to significantly change architecture)
 '''
 
