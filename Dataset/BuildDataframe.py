@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import nibabel as nib
 
 def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
@@ -27,6 +28,16 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
         seg_filename = volume_name + '_seg.nii.gz'
 
         seg_file_path = seg_path_main + '/' + volume_name
+
+        seg_img = nib.load(seg_file_path + '/' + seg_filename)
+
+        seg_data = seg_img.get_fdata()[:, :, slice_number]
+
+        seg_data[seg_data == 2] = 0
+
+        # Ignore slices of both the image and label that are only zero
+        if seg_data.max() == seg_data.min():
+            continue
 
         train_val_test = 'hold'
 
@@ -94,10 +105,13 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
 if __name__ == '__main__':
 
-    image_path_t2_t1 = 'D:/Geoff_Klein/BRATS18/test/pix2pix_3d_cns-batchSize180_T2T1_lambda10000/npy'
+    image_path_t2_t1 = 'D:/Geoff_Klein/BRATS18/T2_Flair'
 
-    image_path_t2_flair = 'D:/Geoff_Klein/BRATS18/test/pix2pix_3d_cns-batchSize180_T2T1_lambda10000/npy'
+    image_path_t2_flair = 'D:/Geoff_Klein/BRATS18/T2_T1'
 
     seg_path_main = 'D:/Geoff_Klein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
 
     df = build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main)
+
+    df.to_csv('seg_slice_dataframe.csv', index=False)
+    df.to_pickle('seg_slice_dataframe.pickle')

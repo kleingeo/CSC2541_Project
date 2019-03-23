@@ -19,6 +19,7 @@ import tensorflow as tf
 
 from ModelTraining.ModelSelectUtil import ModelSelectUtil
 from ModelTraining.ModelParamUtil import ModelParamUtil
+import ModelTraining.TrainerFileNamesUtil as TrainerFileNamesUtil
 
 from keras.utils import multi_gpu_model
 from Dataset.DataGenerator import DataGenerator
@@ -30,7 +31,7 @@ from OtherModels.Utils import dice_loss, dice
 import ModelTraining.GridSearchUtil as grid_util
 import ModelTraining.GridSearch_Consts as GS_Util
 
-import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
+
 
 
 

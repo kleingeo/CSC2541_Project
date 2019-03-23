@@ -176,10 +176,10 @@ def get_vnet(
         shortcut = KL.Conv2D(number_of_base_filters * (2 ** layer_depth) * 2,
                              (1, 1))(up_convolution)
 
-        skip_block = KL.Add()([current_layer, shortcut])
+        current_layer = KL.Add()([current_layer, shortcut])
 
     n_labels = 1
-    final_convolution = Conv2D(num_classes, (1, 1))(skip_block)
+    final_convolution = Conv2D(num_classes, (1, 1))(current_layer)
     act = Activation('sigmoid')(final_convolution)
 
     model = Model(inputs=model_inputs, outputs=act)

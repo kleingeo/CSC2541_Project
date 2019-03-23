@@ -2,8 +2,9 @@ import numpy as np
 import keras
 import nibabel as nib
 
-from RandomAugmentation import RandomAugmentation
-# from crop_pad_sitk_image import Crop_Pad_Sitk_Image
+from skimage.transform import resize
+
+from Dataset.RandomAugmentation import RandomAugmentation
 
 
 def pad_data(data, desired_shape):
@@ -116,7 +117,7 @@ class DataGenerator(keras.utils.Sequence):
     Generates data for Keras
     """
     def __init__(self, t2_sample, seg_sample, t2_sample_main_path, seg_sample_main_paths, seg_slice_list,
-                 batch_size=5, sample_size=(32, 128, 128), n_channels=1, shuffle=False, augment_data=False,
+                 batch_size=5, sample_size=(256, 256), n_channels=1, shuffle=False, augment_data=False,
                  t1_sample=None, flair_sample=None,
                  t1_sample_main_path=None, flair_sample_main_path=None):
 
@@ -240,6 +241,10 @@ class DataGenerator(keras.utils.Sequence):
             seg_slice = samples[4]
 
             t2_img = np.load(self.t2_sample_main_path + '/' + t2_sample)
+
+            if len(t2_img.shape) > 2:
+                t2_img = t2_img[:, :, 0]
+
             t2_img = (t2_img - t2_img.min()) / (t2_img.max() - t2_img.min()) * 255
 
 
@@ -247,12 +252,20 @@ class DataGenerator(keras.utils.Sequence):
 
             if t1_sample is not None:
                 t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
+
+                if len(t1_img.shape) > 2:
+                    t1_img = t1_img[:, :, 0]
+
                 t1_img = (t1_img - t1_img.min()) / (t1_img.max() - t1_img.min()) * 255
             else:
                 t1_img = None
 
             if flair_sample is not None:
                 flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
+
+                if len(flair_img.shape) > 2:
+                    flair_img = flair_img[:, :, 0]
+
                 flair_img = (flair_img - flair_img.min()) / (flair_img.max() - flair_img.min()) * 255
             else:
                 flair_img = None
@@ -262,6 +275,14 @@ class DataGenerator(keras.utils.Sequence):
 
             seg_img = seg_img.get_fdata()[:, :, seg_slice]
 
+            t2_img = resize(t2_img, output_shape=self.sample_size, order=1)
+            seg_img = resize(seg_img, output_shape=self.sample_size, order=0)
+
+            if t1_sample is not None:
+                t1_img = resize(t1_img, output_shape=self.sample_size, order=1)
+
+            if flair_sample is not None:
+                flair_img = resize(flair_img, output_shape=self.sample_size, order=1)
 
             if self.augment_data:
 

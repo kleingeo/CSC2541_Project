@@ -12,12 +12,12 @@ if __name__ == '__main__':
 
 
 
-    df = pd.read_pickle('../DataFrame/spine_CT_dataframe_registered_with_nib_rev2.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
 
-    t2_file_path = '/localdisk1/GeoffKlein/SegmentationData/CNN_Processed_Samples_08_08_125_registered'
-    seg_file_path = '/localdisk1/GeoffKlein/SegmentationData/CNN_Processed_Samples_08_08_125_registered'
-    t1_file_path = '/localdisk1/GeoffKlein/SegmentationData/CNN_Processed_Samples_08_08_125_registered'
-    flair_file_path = '/localdisk1/GeoffKlein/SegmentationData/CNN_Processed_Samples_08_08_125_registered'
+    t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
+    seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
+    t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
+    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_FLAIR'
 
 
     t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                              with_fake=[True, False])
 
 
-    trainer = Trainer(output_directory='TrainOutput',
+    trainer = Trainer(output_directory='../TrainOutput',
 
                       t2_img_filelist_train=t2_filelist_train,
                       seg_filelist_train=seg_filelist_train,
