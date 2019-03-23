@@ -7,6 +7,12 @@ WARNING: This file is very hardcoded. Going to need to do some
         editing to generalize it.
 '''
 
+import sys
+sys.path.append('..')
+
+import numpy as np
+
+
 import OtherModels.IUNet as IUNet
 import OtherModels.UNet as UNet
 import OtherModels.VGG as VGG
@@ -19,6 +25,75 @@ import OtherModels.MyCBK as MyCBK
 import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
 import pandas as pd
 import sys
+
+
+from log.logging_dict_configuration import logging_dict_config
+import logging
+from logging.config import dictConfig
+
+class Histroies_Logger(Callback):
+
+    def __init__(self, logger):
+
+        super(Histroies_Logger, self).__init__()
+
+        self.logger = logger
+
+
+    def on_train_begin(self, logs={}):
+        self.history = {'loss': [], 'val_loss': [], 'concurrency': [], 'val_concurrency': [], 'dice': [],
+                        'val_dice': []}
+
+
+    def on_epoch_end(self, epoch, logs={}):
+
+        loss = logs['loss']
+        val_loss = logs['val_loss']
+
+        concurrancy = logs['concurrency']
+        val_concurrancy = logs['val_concurrency']
+
+        dice = logs['dice_coef']
+        val_dice = logs['val_dice_coef']
+
+        self.logger.info('Epoch {:d} - loss: {:.5f} - dice: {:.5f} - concurrency: {:.5f} - '
+                         'val_loss: {:.5f} - val_dice: {:.5f} - val_concurrency: {:.5f}.'.format(epoch,
+                                                                                                loss,
+                                                                                                dice,
+                                                                                                concurrancy,
+                                                                                                val_loss,
+                                                                                                val_dice,
+                                                                                                val_concurrancy))
+
+
+class ModelWeightSaver(Callback):
+
+    def __init__(self, single_gpu_model, weights_filename, period, total_epoch_size):
+
+        super(ModelWeightSaver, self).__init__()
+
+        self.single_gpu_model = single_gpu_model
+        self.weights_filename = weights_filename
+        self.period = period
+        self.total_epoch_size = total_epoch_size
+
+    def on_epoch_end(self, epoch, logs=None):
+
+        if self.period is not None:
+
+            if ((epoch + 1) % self.period == 0) and ((epoch + 1) != self.total_epoch_size):
+
+                name = self.weights_filename + '_' + str(epoch + 1) + '_weights.h5'
+
+                self.single_gpu_model.save(name)
+        #
+        # if (epoch + 1) == self.total_epoch_size:
+        #
+        #     name = self.weights_filename + '_' + str(epoch + 1) + '_weights.h5'
+        #
+        #     self.single_gpu_model.save(name)
+
+
 
 class Trainer():
     def __init__(self,
