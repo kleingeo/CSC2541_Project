@@ -65,3 +65,7 @@ prostate_data/
 
 # Ignore numpy files
 *.npy
+
+# Ignore model weights
+*.h5
+*.h5py

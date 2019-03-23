@@ -11,8 +11,7 @@ from keras.models import Model
 from keras import backend as K
 K.set_image_dim_ordering('tf')
 
-def get_iunet(img_x = 512,
-              img_y = 512,
+def get_iunet(img_shape=(512, 512),
               dilation_rate = 1,
               kernel_initializer = 'glorot_uniform',
               depth = 5,
@@ -22,7 +21,7 @@ def get_iunet(img_x = 512,
               deconvolution = False,
               dropout = 0,
               num_classes = 1,
-              num_seq = 1):
+              num_channels = 1):
     """
     The function that build the Inception Unet
     :param mode: (str) the choice of imaging modality. '2Ch', 'WOFS' or 'FS'
@@ -44,9 +43,7 @@ def get_iunet(img_x = 512,
     :return: an Inception UNet
     """
 
-    model_inputs = Input((img_x,
-                          img_y,
-                          num_seq))
+    model_inputs = Input((img_shape + (num_channels,)))
 
     dilation_rate = (dilation_rate, dilation_rate)
     pool_size = (pool_1d_size, pool_1d_size)

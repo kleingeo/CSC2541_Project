@@ -8,34 +8,8 @@ import os
 import pandas as pd
 from keras import backend as K
 
-def decide_chnls(mode):
-    '''
-    Helps to determine dimensionality of modality choice.
-    :param mode: (str) choice of imaging modality. '2Ch', 'WOFS', or 'FS'
-    :return: (tuple) number of channels, list of channel indices.
-    '''
-    if mode == '2Ch':
-        return (2, [0,1])
-    if mode =='WOFS':
-        return (1, [1])
-    if mode == 'FS':
-        return (1, [0])
 
-def My_new_loss(y_true, y_pred):
-    '''
-    My Troversky loss function.
-    :param y_true:
-    :param y_pred:
-    :return:
-    '''
-
-    ave_DSC = (dice_coef(y_true[:, 0], y_pred[:, 0]) +
-               dice_coef(y_true[:,1] ,y_pred[:,1]) +
-               dice_coef(y_true[:, 2], y_pred[:, 2]))
-
-    return 3.0 - ave_DSC
-
-def dice_coef(y_true, y_pred):
+def dice(y_true, y_pred):
     """This method calculates the dice coefficient between the true
      and predicted masks
     Args:
@@ -58,4 +32,4 @@ def dice_loss(y_true, y_pred):
     :param y_pred: The predicted mask
     :return: negative of the dice_loss
     '''
-    return -dice_coef(y_true, y_pred)
+    return -dice(y_true, y_pred)

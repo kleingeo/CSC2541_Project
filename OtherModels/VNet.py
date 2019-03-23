@@ -5,24 +5,19 @@ edited: G. Kuling
 Simple implementation of VNet
 '''
 import numpy as np
-import tensorflow as tf
 from keras import backend as K
 import keras.layers as KL
 from keras.layers import Activation, Deconvolution2D
-from keras.layers import Conv2D, MaxPooling2D, UpSampling2D, \
+from keras.layers import Conv2D, UpSampling2D, \
     BatchNormalization, Dropout
 from keras.layers import Input, concatenate
 from keras.models import Model
-from keras.utils import multi_gpu_model
-import keras.regularizers as KR
-import logging
-import os
+
 K.set_image_dim_ordering('tf')
 
 def get_vnet(
-        num_seq=1,
-        img_x=256,
-        img_y=256,
+        num_channels=1,
+        img_shape=(256, 256),
         num_classes=1,
         dilation_rate=1,
         kernel_initializer='glorot_uniform',
@@ -60,35 +55,15 @@ def get_vnet(
     false means the drop out is not used
     :return:
     """
-    # log_params(volume_frames,
-    #            volume_rows,
-    #            volume_columns,
-    #            depth,
-    #            number_of_base_filters,
-    #            batch_normalization,
-    #            pool_size,
-    #            deconvolution,
-    #            dropout)
 
-    model_inputs = Input((img_x,
-                          img_y,
-                          num_seq))
+
+    model_inputs = Input((img_shape + (num_channels,)))
+
 
     kernel_size = (kernel_1d_size, kernel_1d_size)
     dilation_rate = (dilation_rate, dilation_rate)
     current_layer = model_inputs
     levels = list()
-
-    # if kern_reg_const is not None:
-    #     kern_reg = KR.l2(kern_reg_const)
-    # else:
-    #     kern_reg = None
-    #
-    # if bias_reg_const is not None:
-    #     bias_reg = KR.l2(bias_reg_const)
-    # else:
-    #     bias_reg = None
-
 
     for layer_depth in range(depth):
 
@@ -344,8 +319,4 @@ def get_up_convolution(input,
                       name=depth, padding='same')(UpSampling2D(
             size=pool_size)(input))
 
-if __name__ == '__main__':
-    a = get_vnet()
 
-
-    print('done')

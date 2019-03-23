@@ -99,13 +99,14 @@ def up_conv_block(input_tensor, kernel_size, filters, stage, block, strides=(1, 
     return x
 
 
-def get_resnet(img_x=256,
-               img_y=256,
+def get_resnet(img_shape=(256, 256),
                f=16,
                bn_axis=3,
                num_classes=1,
-               num_seq=1):
-    input = Input((img_x, img_y, num_seq))
+               num_channels=1):
+
+    model_inputs = Input((img_shape + (num_channels,)))
+
     x = ZeroPadding2D((4, 4))(input)
     x = Conv2D(f, (7, 7), strides=(2, 2), name='conv1')(x)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)

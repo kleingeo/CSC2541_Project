@@ -14,16 +14,13 @@ from keras import backend as K
 from keras import regularizers
 K.set_image_dim_ordering('tf')
 
-def get_vgg(img_x = 256,
-            img_y = 256,
+def get_vgg(img_shape = (256, 256),
             dropout = 0,
-            num_seq = 1,
+            num_channels = 1,
             num_classes=1):
 
 
-    model_inputs = Input((img_x,
-                          img_y,
-                          num_seq))
+    model_inputs = Input((img_shape + (num_channels,)))
 
     #kernel_size = (kernel_1d_size, kernel_1d_size)
     #dilation_rate = (dilation_rate, dilation_rate)

@@ -11,20 +11,28 @@ import sys
 sys.path.append('..')
 
 import numpy as np
-
-
-import OtherModels.IUNet as IUNet
-import OtherModels.UNet as UNet
-import OtherModels.VGG as VGG
-import OtherModels.ResNet as ResNet
-import OtherModels.VNet as VNet
-from keras.utils import multi_gpu_model
-from OtherModels.Utils import dice_loss
-import OtherModels.DataGenerator as generator
-import OtherModels.MyCBK as MyCBK
-import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
+from keras.callbacks import ModelCheckpoint, Callback
+import os
 import pandas as pd
-import sys
+import keras
+import tensorflow as tf
+
+from ModelTraining.ModelSelectUtil import ModelSelectUtil
+from ModelTraining.ModelParamUtil import ModelParamUtil
+
+from keras.utils import multi_gpu_model
+from Dataset.DataGenerator import DataGenerator
+
+
+from OtherModels.Utils import dice_loss, dice
+
+
+import ModelTraining.GridSearchUtil as grid_util
+import ModelTraining.GridSearch_Consts as GS_Util
+
+import OtherModels.TrainerFileNamesUtil as TrainerFileNamesUtil
+
+
 
 
 from log.logging_dict_configuration import logging_dict_config
@@ -41,8 +49,7 @@ class Histroies_Logger(Callback):
 
 
     def on_train_begin(self, logs={}):
-        self.history = {'loss': [], 'val_loss': [], 'concurrency': [], 'val_concurrency': [], 'dice': [],
-                        'val_dice': []}
+        self.history = {'loss': [], 'val_loss': [], 'dice': [], 'val_dice': []}
 
 
     def on_epoch_end(self, epoch, logs={}):
@@ -50,20 +57,15 @@ class Histroies_Logger(Callback):
         loss = logs['loss']
         val_loss = logs['val_loss']
 
-        concurrancy = logs['concurrency']
-        val_concurrancy = logs['val_concurrency']
+        dice = logs['dice']
+        val_dice = logs['val_dice']
 
-        dice = logs['dice_coef']
-        val_dice = logs['val_dice_coef']
-
-        self.logger.info('Epoch {:d} - loss: {:.5f} - dice: {:.5f} - concurrency: {:.5f} - '
-                         'val_loss: {:.5f} - val_dice: {:.5f} - val_concurrency: {:.5f}.'.format(epoch,
-                                                                                                loss,
-                                                                                                dice,
-                                                                                                concurrancy,
-                                                                                                val_loss,
-                                                                                                val_dice,
-                                                                                                val_concurrancy))
+        self.logger.info('Epoch {:d} - loss: {:.5f} - dice: {:.5f} - '
+                         'val_loss: {:.5f} - val_dice: {:.5f}.'.format(epoch,
+                                                                       loss,
+                                                                       dice,
+                                                                       val_loss,
+                                                                       val_dice))
 
 
 class ModelWeightSaver(Callback):
@@ -86,197 +88,367 @@ class ModelWeightSaver(Callback):
                 name = self.weights_filename + '_' + str(epoch + 1) + '_weights.h5'
 
                 self.single_gpu_model.save(name)
-        #
-        # if (epoch + 1) == self.total_epoch_size:
-        #
-        #     name = self.weights_filename + '_' + str(epoch + 1) + '_weights.h5'
-        #
-        #     self.single_gpu_model.save(name)
+
 
 
 
 class Trainer():
+
     def __init__(self,
-                 img_filelist,
-                 label_filelist,
-                 file_path,
+                 output_directory,
+                 t2_img_filelist_train,
+                 seg_filelist_train,
+                 seg_slice_train,
+                 t2_img_filelist_val,
+                 seg_filelist_val,
+                 seg_slice_val,
+                 t2_file_path,
+                 seg_file_path,
+                 t1_img_filelist_train=None,
+                 flair_img_filelist_train=None,
+                 t1_img_filelist_val=None,
+                 flair_img_filelist_val=None,
+                 t1_file_path=None,
+                 flair_file_path=None,
                  batch_size=5,
-                 sample_size=(256, 256, 1),
+                 sample_size=(256, 256),
                  shuffle=True,
-                 augment=False,
-                 ofolder=None,
-                 samples_per_card=None,
                  epochs=50,
-                 gpus_used=1,
-                 model_type='IUNet'):
-        self.img_filelist = img_filelist
-        self.label_filelist = label_filelist
-        self.file_path = file_path
-        self.batch_size = batch_size
+                 model_type='IUNet',
+                 multi_gpu=False,
+                 training_log_name=None,
+                 train_with_fake=False,
+                 train_fraction=1.0,
+                 trainer_grid_search=None,
+                 relative_save_weight_peroid=None):
+
+
+        self.top_output_directory = output_directory
+
+        self.t2_img_filelist_train = t2_img_filelist_train
+        self.t2_img_filelist_val = t2_img_filelist_val
+        self.t2_file_path = t2_file_path
+
+        self.seg_filelist_train = seg_filelist_train
+        self.seg_filelist_val = seg_filelist_val
+        self.seg_slice_train = seg_slice_train
+        self.seg_slice_val = seg_slice_val
+        self.seg_file_path = seg_file_path
+
+
+        self.t1_img_filelist_train = t1_img_filelist_train
+        self.t1_img_filelist_val = t1_img_filelist_val
+        self.t1_file_path = t1_file_path
+
+        self.flair_filelist_train = flair_img_filelist_train
+        self.flair_img_filelist_val = flair_img_filelist_val
+        self.flair_file_path = flair_file_path
+
+
         self.sample_size = sample_size
+
         self.shuffle = shuffle
-        self.augment = augment
-        self.ofolder = ofolder
-        self.samples_per_card = samples_per_card
+
         self.epochs = epochs
-        self.gpus_used = gpus_used
+        self.batch_size = batch_size
+
         self.model_type = model_type
+        self.multi_gpu = multi_gpu
+
+        self.num_channels = 1
+
+        self.train_with_fake = train_with_fake
+
+        self.train_fraction = train_fraction
+
+        self.relative_save_weight_peroid = relative_save_weight_peroid
+
+        if t1_img_filelist_train is not None:
+            self.num_channels = self.num_channels + 1
+
+        if flair_img_filelist_train is not None:
+            self.num_channels = self.num_channels + 1
 
 
-    def train_the_model(self):
+        self.time_stamp = TrainerFileNamesUtil.get_time()
+
+        self.time_stamp_dir = os.path.join(self.top_output_directory, self.time_stamp)
+
+        if not os.path.exists(self.time_stamp_dir):
+            os.makedirs(self.time_stamp_dir)
+
+
+        self.training_log_name = training_log_name
+
+
+        if self.training_log_name is None:
+
+            self.training_log_name = self.top_output_directory + '/' + '/train.log'
+
+        self.logging_dict = logging_dict_config(self.training_log_name)
+
+        dictConfig(self.logging_dict)
+
+        self.logger = logging.getLogger(__name__)
+
+        self.logger_format = logging.Formatter(fmt=self.logging_dict['formatters']['f']['format'],
+                                               datefmt=self.logging_dict['formatters']['f']['datefmt'])
+
+
+
+        if trainer_grid_search is None:
+
+
+            params_dictionary = dict(model_typpe=self.model_type,
+                                     epochs=self.epochs,
+                                     batch_size=self.batch_size,
+                                     train_with_fake=self.train_with_fake,
+                                     train_fraction=self.train_fraction)
+
+            grid_utility = grid_util.GridSearchUtil(params_dictionary)
+            self.grid_search_params = grid_utility.get_params_dataframe()
+
+        else:
+
+            params_dictionary = trainer_grid_search
+
+            grid_utility = grid_util.GridSearchUtil(params_dictionary)
+            self.grid_search_params = grid_utility.get_params_dataframe()
+            grid_utility.save(output_location=self.top_output_directory + '/' + self.time_stamp)
+
+
+
+    def build_model_param_directory(self, model_param):
+
+        self.keyword = TrainerFileNamesUtil.build_filename_keyword(model_param)
+
+        self.output_directory = TrainerFileNamesUtil.create_output_directory(
+            self.top_output_directory,
+            os.path.join(self.time_stamp, self.keyword))
+
+
+
+    def build_filenames(self):
+
+
+        self.model_output_directory = self.output_directory
+
+
+        self.model_json_filename = TrainerFileNamesUtil.create_model_json_filename(
+                self.model_output_directory,
+                self.keyword)
+
+        self.model_weights_filename = TrainerFileNamesUtil.create_model_weights_filename(
+                self.model_output_directory,
+                self.keyword)
+
+
+        self.training_history_filename = TrainerFileNamesUtil.create_training_history_filename(
+                self.model_output_directory,
+                self.keyword)
+
+
+        self.logger.info('model json file is ' + str(self.model_json_filename))
+        self.logger.info(
+            'model weights file is ' + str(self.model_weights_filename))
+        self.logger.info(
+            'training history file is ' + str(self.training_history_filename))
+
+
+    def save_training_history(self, history_df, training_history_filename):
+        """
+        this method saves the training history to a file
+        """
+
+        try:
+            history_df.to_csv(training_history_filename, index=False)
+            self.logger.info(
+                'history was saved successfully to ' + training_history_filename)
+        except:
+            self.logger.error(
+                'history file could not be saved to ' + training_history_filename)
+
+
+    def save_model_to_json(self):
+        """
+        this method saves the model's json file, required for loading the
+        model later, properly
+        """
+        model_json = self.model.to_json()
+        with open(self.model_json_filename, 'w') as jason_file:
+            jason_file.write(model_json)
+            self.logger.info(
+                'model saved successfully to ' + self.model_json_filename)
+
+
+    def train(self):
         """
         Main driver of the trainer
-        :param t_opt: Optimizer option
-        :param t_dilRate: dilation rate
-        :param t_depth: depth
-        :param t_dropOut: drop out amount
-        :return:
+
         """
-        ### Main code
-        # start up the data generator
-        gen = generator.data_generator(self.img_filelist,
-                                       self.label_filelist,
-                                       self.file_path,
-                                       self.batch_size,
-                                       (self.sample_size[0],
-                                        self.sample_size[1]),
-                                       self.shuffle,
-                                       self.augment)
-
-        # load the model
-        if self.model_type is 'IUNet':
-            model = IUNet.get_iunet(img_x = self.sample_size[0],
-                                    img_y = self.sample_size[1],
-                                    dilation_rate = 1,
-                                    depth = 5,
-                                    base_filter = 16,
-                                    batch_normalization = False,
-                                    pool_1d_size = 2,
-                                    deconvolution = False,
-                                    dropout = 0.0,
-                                    num_classes=1,
-                                    num_seq=self.sample_size[-1])
-        if self.model_type is 'UNet':
-            model = UNet.get_unet(img_x = self.sample_size[0],
-                                  img_y = self.sample_size[1],
-                                  dilation_rate = 1,
-                                  depth = 5,
-                                  base_filter = 16,
-                                  batch_normalization = False,
-                                  pool_1d_size = 2,
-                                  deconvolution = False,
-                                  dropout = 0.0,
-                                  num_classes=1,
-                                  num_seq=self.sample_size[-1])
-        if self.model_type is 'VGG':
-            model = VGG.get_vgg(img_x = self.sample_size[0],
-                                img_y = self.sample_size[1],
-                                dropout = 0.0,
-                                num_classes = 1,
-                                num_seq = self.sample_size[-1])
-        if self.model_type is 'ResNet':
-            model = ResNet.get_resnet(img_x = self.sample_size[0],
-                                      img_y = self.sample_size[1],
-                                      f=16,
-                                      bn_axis=3,
-                                      num_classes=1,
-                                      num_seq = self.sample_size[-1])
-        if self.model_type is 'VNet':
-            model = VNet.get_vnet(img_x = self.sample_size[0],
-                                  img_y = self.sample_size[1],
-                                  dilation_rate = 1,
-                                  depth = 5,
-                                  batch_normalization = False,
-                                  deconvolution = False,
-                                  dropout = 0.0,
-                                  num_classes=1,
-                                  num_seq=self.sample_size[-1])
 
 
-        # setup a multi GPU trainer
-        if self.gpus_used>1:
-            gmodel = multi_gpu_model(model, gpus=self.gpus_used)
-            gmodel.compile(optimizer='ADAM',
-                           loss=dice_loss,
-                           metrics=[dice_loss])
-            cbk = MyCBK.MyCBK(model, self.ofolder)
+        self.logger.info('Beginning to train model.')
 
-            # begin training
-            gmodel.fit_generator(gen,
-                                 epochs=self.epochs,
-                                 verbose=1,
-                                 steps_per_epoch=100,
-                                 workers=20,
-                                 use_multiprocessing=True,
-                                 callbacks=[cbk])
-        else:
-            gmodel = model
-            gmodel.compile(optimizer='ADAM',
-                           loss=dice_loss,
-                           metrics=[dice_loss])
-            cbk = MyCBK.MyCBK(model, self.ofolder)
+        for index, _ in self.grid_search_params.iterrows():
 
-            # begin training
-            gmodel.fit_generator(gen,
-                                 epochs=self.epochs,
-                                 verbose=1,
-                                 steps_per_epoch=100,
-                                 callbacks=[cbk])
+            train_params = self.grid_search_params.loc[index]
 
-        # model check points, save the best weights
+            self.build_model_param_directory(train_params)
 
-        model_json = model.to_json()
-        with open(TrainerFileNamesUtil.create_model_json_filename(
-                output_directory=self.ofolder,
-                time_stamp=TrainerFileNamesUtil.get_time(),
-                keyword=self.model_type), 'w') as jason_file:
-            jason_file.write(model_json)
+            if index > 0:
+                self.logger.removeHandler(handler)
 
-        print('Training is finished!')
+            handler = logging.FileHandler(self.output_directory + '/' + 'training.log')
+
+            handler.setFormatter(self.logger_format)
+
+            self.logger.addHandler(handler)
+
+            self.logger.info('model parameters are: ')
+            self.logger.info(train_params)
+
+            self.build_filenames()
 
 
-if __name__ == "__main__":
-    ### controlable parameters
-    # For oberon
-    # batch_folder = '/jaylabs/amartel_data2/Grey/2018-06-11-FGTSeg-Data' \
-    #                '/Batches/Training/data/'
-    # target_folder = '/jaylabs/amartel_data2/Grey/2018-06-11-FGTSeg-Data' \
-    #                '/Batches/Training/target/'
-    # ofolder = '/jaylabs/amartel_data2/Grey/2018-06-11-FGTSeg-Data/Models' \
-    #           '/RedoFolder/'
+            self.logger.info(
+                ('model parameters number ' + str(index) + ' of ' +
+                 str(self.grid_search_params.index)))
 
-    # For Titania
-    # batch_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
-    #                '/Batches/2D/Training/data/'
-    # target_folder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data' \
-    #                 '/Batches/2D/Training/target/'
-    # ofolder = '/labs/jaylabs/amartel_data2/Grey/2018-10-12-FGTSeg-Data/Models' \
-    #           '/SingleClass2D/'
+            # load the model
 
-    file_path = '../prostate_data'
 
-    df = pd.read_pickle('../build_dataframe/dataframe_slice.pickle')
+            self.model_fn = ModelSelectUtil(train_params[GS_Util.MODEL_TYPE()])
 
-    img_filelist = df['image_filename'].loc[df['train_val_test'] == 'train'].values
+            model_params = ModelParamUtil(train_params[GS_Util.MODEL_TYPE()])
 
-    label_filelist = df['label_filename'].loc[df['train_val_test'] == 'train'].values
 
-    ofolder = '../OtherModels/model_output'
+            model_params['img_shape'] = self.sample_size
+            model_params['num_channels'] = self.sample_size[1]
 
-    a = Trainer(img_filelist,
-                label_filelist,
-                file_path,
-                batch_size=5,
-                sample_size=(256, 256, 1),
+
+            self.model = self.model_fn(**model_params)
+
+            self.logger.info('model has been built successfully')
+
+
+            if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
+                CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
+            else:
+                CUDA_VISIBLE_DEVICES = ['None']
+
+            if self.multi_gpu == True and len(CUDA_VISIBLE_DEVICES) > 1:
+                self.model_parallel = multi_gpu_model(self.model, gpus=len(CUDA_VISIBLE_DEVICES))
+                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+
+            else:
+                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+
+                self.model_parallel = self.model
+
+            batch_size = train_params['batch_size']
+            epoch_size = train_params['Epochs']
+
+
+            if self.relative_save_weight_peroid is not None:
+
+                period = int(epoch_size / self.relative_save_weight_peroid)
+
+            else:
+
+                period = None
+
+            model_weight_saver_callback = ModelWeightSaver(self.model, self.model_weights_filename,
+                                                           period=period,
+                                                           total_epoch_size=epoch_size)
+
+
+            model_logger = Histroies_Logger(self.logger)
+
+
+            params_train_generator = {'dim': self.sample_size,
+                                      'batch_size': batch_size,
+                                      'n_channels': self.num_channels,
+                                      'shuffle': True,
+                                      'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+
+            params_val_generator = {'dim': self.sample_size,
+                                     'batch_size': batch_size,
+                                     'n_channels': self.num_channels,
+                                     'shuffle': False,
+                                     'augment_data': False}
+
+
+            if train_params[GS_Util.WITH_FAKE()]:
+
+
+                training_generator = DataGenerator(
+                    t2_sample=self.t2_img_filelist_train,
+                    seg_sample=self.seg_filelist_train,
+                    t2_sample_main_path=self.t2_file_path,
+                    seg_sample_main_paths=self.seg_file_path,
+                    seg_slice_list=self.seg_slice_train,
+                    t1_sample=self.t1_img_filelist_train,
+                    flair_sample=self.flair_filelist_train,
+                    t1_sample_main_path=self.t1_file_path,
+                    flair_sample_main_path=self.flair_file_path,
+                    **params_train_generator)
+
+                validation_generator = DataGenerator(
+                    t2_sample=self.t2_img_filelist_val,
+                    seg_sample=self.seg_filelist_val,
+                    t2_sample_main_path=self.t2_file_path,
+                    seg_sample_main_paths=self.seg_file_path,
+                    seg_slice_list=self.seg_slice_val,
+                    t1_sample=self.t1_img_filelist_val,
+                    flair_sample=self.flair_img_filelist_val,
+                    t1_sample_main_path=self.t1_file_path,
+                    flair_sample_main_path=self.flair_file_path,
+                    **params_val_generator)
+
+            else:
+
+                training_generator = DataGenerator(
+                    t2_sample=self.t2_img_filelist_train,
+                    seg_sample=self.seg_filelist_train,
+                    t2_sample_main_path=self.t2_file_path,
+                    seg_sample_main_paths=self.seg_file_path,
+                    seg_slice_list=self.seg_slice_train,
+                    **params_train_generator)
+
+                validation_generator = DataGenerator(
+                    t2_sample=self.t2_img_filelist_val,
+                    seg_sample=self.seg_filelist_val,
+                    t2_sample_main_path=self.t2_file_path,
+                    seg_sample_main_paths=self.seg_file_path,
+                    seg_slice_list=self.seg_slice_val,
+                    **params_val_generator)
+
+            self.logger.info('training started')
+
+            history = self.model_parallel.fit_generator(
+                generator=training_generator,
+                steps_per_epoch=int(len(self.t2_img_filelist_train) / batch_size),
+                epochs=epoch_size,
+                callbacks=[model_weight_saver_callback, model_logger],
+                validation_data=validation_generator,
+                validation_steps=int(len(self.t2_img_filelist_val) / batch_size),
+                verbose=1,
                 shuffle=True,
-                augment=False,
-                ofolder=ofolder,
-                samples_per_card=5,
-                epochs=1,
-                gpus_used=1,
-                model_type='IUNet')
+                use_multiprocessing=True,
+                workers=30,
+                max_queue_size=30)
 
-    a.train_the_model()
+            self.model.save(self.model_weights_filename + '_' + str(epoch_size) + '_weights.h5')
 
+            self.history_df = pd.DataFrame(history.history)
 
-    print('done')
+            self.logger.info(
+                'training completed for this set of parameters.')
+
+            self.save_training_history()
+
+            self.logger.info(
+                self.model_json_filename + ' is successfully saved.')
+            self.logger.info(
+                self.training_history_filename + ' is successfully saved.')
