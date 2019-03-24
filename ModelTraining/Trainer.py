@@ -295,8 +295,12 @@ class Trainer():
 
             train_params = self.grid_search_params.loc[index]
 
-            batch_size = train_params['batch_size']
-            epoch_size = train_params['epochs']
+            batch_size = train_params[GS_Util.BATCH_SIZE()]
+            epoch_size = train_params[GS_Util.EPOCHS()]
+
+
+            # batch_size = train_params['batch_size']
+            # epoch_size = train_params['epochs']
 
             self.build_model_param_directory(train_params)
 
@@ -329,6 +333,7 @@ class Trainer():
 
             model_params['img_shape'] = self.sample_size
 
+            train_size = int(len(self.t2_img_filelist_train) * train_params[GS_Util.TRAIN_FRAC()])
 
             if train_params[GS_Util.WITH_FAKE()]:
 
@@ -348,13 +353,13 @@ class Trainer():
 
 
                 training_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_train,
-                    seg_sample=self.seg_filelist_train,
+                    t2_sample=self.t2_img_filelist_train[:train_size],
+                    seg_sample=self.seg_filelist_train[:train_size],
                     t2_sample_main_path=self.t2_file_path,
                     seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_train,
-                    t1_sample=self.t1_img_filelist_train,
-                    flair_sample=self.flair_filelist_train,
+                    seg_slice_list=self.seg_slice_train[:train_size],
+                    t1_sample=self.t1_img_filelist_train[:train_size],
+                    flair_sample=self.flair_filelist_train[:train_size],
                     t1_sample_main_path=self.t1_file_path,
                     flair_sample_main_path=self.flair_file_path,
                     **params_train_generator)
@@ -388,11 +393,11 @@ class Trainer():
                                         'augment_data': False}
 
                 training_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_train,
-                    seg_sample=self.seg_filelist_train,
+                    t2_sample=self.t2_img_filelist_train[:train_size],
+                    seg_sample=self.seg_filelist_train[:train_size],
                     t2_sample_main_path=self.t2_file_path,
                     seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_train,
+                    seg_slice_list=self.seg_slice_train[:train_size],
                     **params_train_generator)
 
                 validation_generator = DataGenerator(
