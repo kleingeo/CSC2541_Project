@@ -91,7 +91,7 @@ def get_iunet(img_shape=(512, 512),
     act = Activation("sigmoid")(final_convolution)
     model = Model(inputs=model_inputs, outputs=act)
 
-    print(model.summary())
+    # print(model.summary())
     return model
 
 def create_inception_block(input_layer,

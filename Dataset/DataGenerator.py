@@ -178,6 +178,25 @@ class DataGenerator(keras.utils.Sequence):
             else:
                 flair_samples_temp = [None for k in indexes]
 
+        if (isinstance(self.t2_samples, np.ndarray)) and (isinstance(self.seg_samples, np.ndarray)):
+
+            t2_samples_temp = [self.t2_samples[k] for k in indexes]
+            seg_samples_temp = [self.seg_samples[k] for k in indexes]
+
+            seg_slice_list_temp = [self.seg_slice_list[k] for k in indexes]
+
+            if self.t1_samples is not None:
+                t1_samples_temp = [self.t1_samples[k] for k in indexes]
+
+            else:
+                t1_samples_temp = [None for k in indexes]
+
+            if self.flair_samples is not None:
+                flair_samples_temp = [self.flair_samples[k] for k in indexes]
+            else:
+                flair_samples_temp = [None for k in indexes]
+
+
         if (isinstance(self.t2_samples, str)) and (isinstance(self.seg_samples, str)):
 
             t2_samples_temp = self.t2_samples
@@ -226,7 +245,7 @@ class DataGenerator(keras.utils.Sequence):
         # Initialization
 
         x_data_hold = np.empty((self.batch_size,) + self.sample_size + (self.n_channels,), dtype=np.float32)
-        y_data_hold = np.empty((self.batch_size,) + self.sample_size + (self.n_channels,), dtype=np.uint8)
+        y_data_hold = np.empty((self.batch_size,) + self.sample_size + (1,), dtype=np.uint8)
 
         # Generate data
         for i, samples in enumerate(sample_list):
@@ -271,18 +290,25 @@ class DataGenerator(keras.utils.Sequence):
                 flair_img = None
 
 
-            seg_img = nib.load(self.seg_sample_main_paths + '/' + seg_sample)
+            volume_name = seg_sample.split('_seg.nii.gz')[0]
 
-            seg_img = seg_img.get_fdata()[:, :, seg_slice]
+            seg_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + seg_sample)
 
-            t2_img = resize(t2_img, output_shape=self.sample_size, order=1)
-            seg_img = resize(seg_img, output_shape=self.sample_size, order=0)
+            seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
+
+
+            t2_img = resize(t2_img, output_shape=self.sample_size, order=1,
+                            mode='reflect', anti_aliasing=True)
+            seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
+                             mode='reflect', anti_aliasing=True)
 
             if t1_sample is not None:
-                t1_img = resize(t1_img, output_shape=self.sample_size, order=1)
+                t1_img = resize(t1_img, output_shape=self.sample_size, order=1,
+                                mode='reflect', anti_aliasing=True)
 
             if flair_sample is not None:
-                flair_img = resize(flair_img, output_shape=self.sample_size, order=1)
+                flair_img = resize(flair_img, output_shape=self.sample_size, order=1,
+                                   mode='reflect', anti_aliasing=True)
 
             if self.augment_data:
 
@@ -309,21 +335,33 @@ class DataGenerator(keras.utils.Sequence):
                                                                     rotation=rot_ang, scaling=scale_factor,
                                                                     translation=translate, shearing=shear)
 
+            # Only care about tumour core (TC), no setting ET label to 0
+            seg_img[seg_img == 2] = 0
+
+            seg_img[seg_img > 1] = 1
 
             x_data = t2_img
 
             if t1_img is not None:
 
-                x_data = np.stack(x_data, t1_img, axis=0)
+                x_data = np.stack([x_data, t1_img], axis=-1)
 
             if flair_img is not None:
 
-                x_data = np.stack(x_data, flair_img)
+                if len(x_data.shape) > 2:
+
+                    flair_img = np.expand_dims(flair_img, axis=-1)
+                    x_data = np.concatenate([x_data, flair_img], axis=-1)
+
+                else:
+                    x_data = np.stack([x_data, flair_img], axis=-1)
 
 
             if (t1_img is None) and (flair_img is None):
                 x_data = np.expand_dims(x_data, axis=-1)
 
+            assert x_data.shape[2] == self.n_channels, 'Make sure the size of the input features have the correct' \
+                                                       ' number of channels'
 
             y_data = np.expand_dims(seg_img, axis=-1)
 
@@ -334,3 +372,53 @@ class DataGenerator(keras.utils.Sequence):
         return x_data_hold, y_data_hold
 
 
+
+if __name__ == '__main__':
+
+    import pandas as pd
+
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
+
+    t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
+    seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
+    t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
+    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
+
+
+    t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values
+    t1_filelist_train = df['t1_filename'].loc[df['train_val_test'] == 'train'].values
+    flair_filelist_train = df['flair_filename'].loc[df['train_val_test'] == 'train'].values
+
+    t2_filelist_val = df['t2_filename'].loc[df['train_val_test'] == 'val'].values
+    t1_filelist_val = df['t1_filename'].loc[df['train_val_test'] == 'val'].values
+    flair_filelist_val = df['flair_filename'].loc[df['train_val_test'] == 'val'].values
+
+    seg_filelist_train = df['seg_filename'].loc[df['train_val_test'] == 'train'].values
+    seg_slice_train = df['slice_number'].loc[df['train_val_test'] == 'train'].values
+
+    seg_filelist_val = df['seg_filename'].loc[df['train_val_test'] == 'val'].values
+    seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
+
+
+
+    params_train_generator = {'sample_size': (256, 256),
+                              'batch_size': 45,
+                              'n_channels': 3,
+                              'shuffle': False,
+                              'augment_data': False}
+
+
+    training_generator = DataGenerator(
+        t2_sample=t2_filelist_train,
+        seg_sample=seg_filelist_train,
+        t2_sample_main_path=t2_file_path,
+        seg_sample_main_paths=seg_file_path,
+        seg_slice_list=seg_slice_train,
+        t1_sample=t1_filelist_train,
+        flair_sample=flair_filelist_train,
+        t1_sample_main_path=t1_file_path,
+        flair_sample_main_path=flair_file_path,
+        **params_train_generator)
+
+
+    training_generator.__getitem__(0)

@@ -101,7 +101,7 @@ class GridSearchUtil:
         Get the fraction for training data
         :return: list of available architectures
         """
-        train_frac = [1.0]
+        train_frac = [1]
         return train_frac
 
 

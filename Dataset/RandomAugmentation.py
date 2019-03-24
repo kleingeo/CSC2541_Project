@@ -18,9 +18,9 @@ def random_scaling(scaling):
     return scaling_mat
 
 
-def random_translate(sx, sy, scaling, sample_size):
+def random_translate(scaling, sample_size):
 
-    translate = np.array([0, 0, 0])
+    translate = np.array([0, 0])
 
 
     sx = np.random.uniform(scaling[0], scaling[1])

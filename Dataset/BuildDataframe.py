@@ -29,15 +29,15 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
         seg_file_path = seg_path_main + '/' + volume_name
 
-        seg_img = nib.load(seg_file_path + '/' + seg_filename)
-
-        seg_data = seg_img.get_fdata()[:, :, slice_number]
-
-        seg_data[seg_data == 2] = 0
-
-        # Ignore slices of both the image and label that are only zero
-        if seg_data.max() == seg_data.min():
-            continue
+        # seg_img = nib.load(seg_file_path + '/' + seg_filename)
+        #
+        # seg_data = seg_img.get_fdata()[:, :, slice_number]
+        #
+        # seg_data[seg_data == 2] = 0
+        #
+        # # Ignore slices of both the image and label that are only zero
+        # if seg_data.max() == seg_data.min():
+        #     continue
 
         train_val_test = 'hold'
 
@@ -66,7 +66,7 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
                       'train_val_test': train_val_test}
 
-        df.append(dict_slice, ignore_index=True)
+        df = df.append(dict_slice, ignore_index=True)
 
     total_slices = df.shape[0]
 
@@ -113,5 +113,5 @@ if __name__ == '__main__':
 
     df = build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main)
 
-    df.to_csv('seg_slice_dataframe.csv', index=False)
-    df.to_pickle('seg_slice_dataframe.pickle')
+    df.to_csv('seg_slice_dataframe_rev2.csv', index=False)
+    df.to_pickle('seg_slice_dataframe_rev2.pickle')

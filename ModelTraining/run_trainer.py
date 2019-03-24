@@ -17,7 +17,7 @@ if __name__ == '__main__':
     t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
     seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
     t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
-    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_FLAIR'
+    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
 
 
     t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values
@@ -35,11 +35,11 @@ if __name__ == '__main__':
     seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
 
 
-    params_dictionary = dict(model_type=['IUNet', 'UNet', 'VGG', 'ResNet', 'VNet'],
+    params_dictionary = dict(model_type=['VNet', 'IUNet', 'UNet', 'VGG', 'ResNet'],
                              Epochs=[100],
-                             batch_size=[20],
+                             batch_size=[45],
                              augment_training=[True],
-                             train_faction=[1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
+                             train_fraction=[1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
                              with_fake=[True, False])
 
 

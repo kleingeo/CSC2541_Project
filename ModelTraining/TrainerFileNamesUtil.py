@@ -66,7 +66,11 @@ def create_training_history_filename(output_directory, keyword):
 def build_filename_keyword(model_param):
 
 
-    train_frac = str(model_param[GS_Util.TRAIN_FRAC()]).replace('.', '')
+    if model_param[GS_Util.TRAIN_FRAC()] == 1:
+        train_frac = str(int(model_param[GS_Util.TRAIN_FRAC()]))
+
+    else:
+        train_frac = str(model_param[GS_Util.TRAIN_FRAC()]).replace('.', '')
 
     keyword = (str(model_param[GS_Util.MODEL_TYPE()]) + '_' +
                train_frac + '_' +

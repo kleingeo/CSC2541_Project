@@ -23,14 +23,12 @@ def get_vnet(
         kernel_initializer='glorot_uniform',
         kernel_1d_size=3,
         depth=5,
-        number_of_base_filters=16,
+        base_filter=16,
         batch_normalization=False,
         pool_size=(2, 2),
         deconvolution=True,
         dropout=0):
     """
-    mostly taken from
-    https://raw.githubusercontent.com/ellisdg/3DUnetCNN/master/unet3d/model/unet.py
     :param number_of_sequences: this is 1 if only one sequence is used in the
     batches, and  >1 if more sequences has been used.
     :param volume_frames: number of slices in the volume
@@ -42,7 +40,7 @@ def get_vnet(
     :param kernel_1d_size: the size of the kernel, if it is 3 , then the kernel
     is (3,3,3)
     :param depth: the number of blocks in U-Net
-    :param number_of_base_filters: number of filters in the first convolutional
+    :param base_filter: number of filters in the first convolutional
     layer of the U-Net, the number will be multiplied by 2 in the blocks
     moving down
     :param batch_normalization: bool value, True means the batch normalization
@@ -70,7 +68,7 @@ def get_vnet(
 
         block1 = create_convolution_block(
             input_layer=current_layer,
-            n_filters=number_of_base_filters * (2 ** layer_depth),
+            n_filters=base_filter * (2 ** layer_depth),
             batch_normalization=batch_normalization,
             kernel=kernel_size,
             kernel_initializer=kernel_initializer,
@@ -83,7 +81,7 @@ def get_vnet(
 
             block2 = create_convolution_block(
                 input_layer=block1,
-                n_filters=number_of_base_filters * (2 ** layer_depth),
+                n_filters=base_filter * (2 ** layer_depth),
                 batch_normalization=batch_normalization,
                 kernel=kernel_size,
                 kernel_initializer=kernel_initializer,
@@ -96,7 +94,7 @@ def get_vnet(
 
             block3 = create_convolution_block(
                 input_layer=block2,
-                n_filters=number_of_base_filters * (2 ** layer_depth),
+                n_filters=base_filter * (2 ** layer_depth),
                 batch_normalization=batch_normalization,
                 kernel=kernel_size,
                 kernel_initializer=kernel_initializer,
@@ -106,18 +104,18 @@ def get_vnet(
             final_layer_block = block3
 
 
-        shortcut = KL.Conv2D(number_of_base_filters * (2 ** layer_depth), (1, 1))(current_layer)
+        shortcut = KL.Conv2D(base_filter * (2 ** layer_depth), (1, 1))(current_layer)
 
         skip_block = KL.Add()([final_layer_block, shortcut])
 
 
 
         if layer_depth < depth - 1:
-            current_layer = KL.Conv2D(number_of_base_filters * (2 ** layer_depth),
+            current_layer = KL.Conv2D(base_filter * (2 ** layer_depth),
                                       (2, 2),
                                       strides=2)(skip_block)
-            current_layer = KL.PReLU()(current_layer)
-
+            # current_layer = KL.PReLU()(current_layer)
+            current_layer = Activation('relu')(current_layer)
             levels.append(skip_block)
 
         else:
@@ -130,7 +128,7 @@ def get_vnet(
         up_convolution = get_up_convolution(input=current_layer,
                                             pool_size=pool_size,
                                             deconvolution=deconvolution,
-                                            n_filters=number_of_base_filters * (2 ** layer_depth),
+                                            n_filters=base_filter * (2 ** layer_depth),
                                             depth='UP' + str(layer_depth))
 
         concat = concatenate([up_convolution, levels[layer_depth]], axis=-1)
@@ -139,7 +137,7 @@ def get_vnet(
             concat = Dropout(dropout)(concat)
 
         current_layer = create_convolution_block(
-            n_filters=number_of_base_filters * (2 ** layer_depth) * 2,
+            n_filters=base_filter * (2 ** layer_depth) * 2,
             input_layer=concat,
             batch_normalization=batch_normalization,
             kernel=kernel_size,
@@ -151,7 +149,7 @@ def get_vnet(
         if layer_depth > 0:
 
             current_layer = create_convolution_block(
-                n_filters=number_of_base_filters * (2 ** layer_depth) * 2,
+                n_filters=base_filter * (2 ** layer_depth) * 2,
                 input_layer=current_layer,
                 batch_normalization=batch_normalization,
                 kernel=kernel_size,
@@ -163,7 +161,7 @@ def get_vnet(
         if layer_depth > 1:
 
             current_layer = create_convolution_block(
-                n_filters=number_of_base_filters * (2 ** layer_depth) * 2,
+                n_filters=base_filter * (2 ** layer_depth) * 2,
                 input_layer=current_layer,
                 batch_normalization=batch_normalization,
                 kernel=kernel_size,
@@ -173,7 +171,7 @@ def get_vnet(
 
 
 
-        shortcut = KL.Conv2D(number_of_base_filters * (2 ** layer_depth) * 2,
+        shortcut = KL.Conv2D(base_filter * (2 ** layer_depth) * 2,
                              (1, 1))(up_convolution)
 
         current_layer = KL.Add()([current_layer, shortcut])

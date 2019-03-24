@@ -91,7 +91,7 @@ def get_unet(img_shape = (512, 512),
 
     # model.compile(optimizer=optimizer, loss=dice_loss,
     #               metrics=[dice_coef])
-    print(model.summary())
+    # print(model.summary())
     return model
 
 def create_convolution_block(input_layer,

@@ -12,21 +12,28 @@ def ModelSelectUtil(model_name):
 
     if model_name == 'IUNet':
 
-        model = IUNet.get_iunet
+        model_fn = IUNet.get_iunet
+
+        return model_fn
 
     if model_name == 'UNet':
 
-        model = UNet.get_unet
+        model_fn = UNet.get_unet
+        return model_fn
 
     if model_name == 'VGG':
 
-        model = VGG.get_vgg
+        model_fn = VGG.get_vgg
+        return model_fn
 
     if model_name == 'ResNet':
 
         model_fn = ResNet.get_resnet
+        return model_fn
 
     if model_name == 'VNet':
 
         model_fn = VNet.get_vnet
+        return model_fn
+
 

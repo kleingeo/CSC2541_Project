@@ -16,6 +16,8 @@ def ModelParamUtil(model_name):
                         'dropout': 0.0,
                         'num_classes': 1}
 
+        return model_params
+
     if model_name == 'UNet':
 
         model_params = {'dilation_rate': 1,
@@ -27,10 +29,14 @@ def ModelParamUtil(model_name):
                         'dropout': 0.0,
                         'num_classes': 1}
 
+        return model_params
+
     if model_name == 'VGG':
 
         model_params = {'dropout': 0.0,
                         'num_classes': 1}
+
+        return model_params
 
     if model_name == 'ResNet':
 
@@ -39,13 +45,16 @@ def ModelParamUtil(model_name):
                         'dropout': 0.0,
                         'num_classes': 1}
 
+        return model_params
+
     if model_name == 'VNet':
 
         model_params = {'dilation_rate': 1,
                         'depth': 5,
                         'base_filter': 16,
                         'batch_normalization': False,
-                        'pool_1d_size': 2,
                         'deconvolution': True,
                         'dropout': 0.0,
                         'num_classes': 1}
+
+        return model_params

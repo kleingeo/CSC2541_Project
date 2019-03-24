@@ -184,7 +184,7 @@ class Trainer():
 
         if self.training_log_name is None:
 
-            self.training_log_name = self.top_output_directory + '/' + '/train.log'
+            self.training_log_name = self.top_output_directory + '/' + self.time_stamp + '/train.log'
 
         self.logging_dict = logging_dict_config(self.training_log_name)
 
@@ -295,6 +295,9 @@ class Trainer():
 
             train_params = self.grid_search_params.loc[index]
 
+            batch_size = train_params['batch_size']
+            epoch_size = train_params['epochs']
+
             self.build_model_param_directory(train_params)
 
             if index > 0:
@@ -325,62 +328,23 @@ class Trainer():
 
 
             model_params['img_shape'] = self.sample_size
-            model_params['num_channels'] = self.sample_size[1]
-
-
-            self.model = self.model_fn(**model_params)
-
-            self.logger.info('model has been built successfully')
-
-
-            if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
-                CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
-            else:
-                CUDA_VISIBLE_DEVICES = ['None']
-
-            if self.multi_gpu == True and len(CUDA_VISIBLE_DEVICES) > 1:
-                self.model_parallel = multi_gpu_model(self.model, gpus=len(CUDA_VISIBLE_DEVICES))
-                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
-
-            else:
-                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
-
-                self.model_parallel = self.model
-
-            batch_size = train_params['batch_size']
-            epoch_size = train_params['Epochs']
-
-
-            if self.relative_save_weight_peroid is not None:
-
-                period = int(epoch_size / self.relative_save_weight_peroid)
-
-            else:
-
-                period = None
-
-            model_weight_saver_callback = ModelWeightSaver(self.model, self.model_weights_filename,
-                                                           period=period,
-                                                           total_epoch_size=epoch_size)
-
-
-            model_logger = Histroies_Logger(self.logger)
-
-
-            params_train_generator = {'dim': self.sample_size,
-                                      'batch_size': batch_size,
-                                      'n_channels': self.num_channels,
-                                      'shuffle': True,
-                                      'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
-
-            params_val_generator = {'dim': self.sample_size,
-                                     'batch_size': batch_size,
-                                     'n_channels': self.num_channels,
-                                     'shuffle': False,
-                                     'augment_data': False}
 
 
             if train_params[GS_Util.WITH_FAKE()]:
+
+                model_params['num_channels'] = 3
+
+                params_train_generator = {'sample_size': self.sample_size,
+                                          'batch_size': batch_size,
+                                          'n_channels': 3,
+                                          'shuffle': True,
+                                          'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+
+                params_val_generator = {'sample_size': self.sample_size,
+                                        'batch_size': batch_size,
+                                        'n_channels': 3,
+                                        'shuffle': False,
+                                        'augment_data': False}
 
 
                 training_generator = DataGenerator(
@@ -409,6 +373,20 @@ class Trainer():
 
             else:
 
+                model_params['num_channels'] = 1
+
+                params_train_generator = {'sample_size': self.sample_size,
+                                          'batch_size': batch_size,
+                                          'n_channels': 1,
+                                          'shuffle': True,
+                                          'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+
+                params_val_generator = {'sample_size': self.sample_size,
+                                        'batch_size': batch_size,
+                                        'n_channels': 1,
+                                        'shuffle': False,
+                                        'augment_data': False}
+
                 training_generator = DataGenerator(
                     t2_sample=self.t2_img_filelist_train,
                     seg_sample=self.seg_filelist_train,
@@ -424,6 +402,39 @@ class Trainer():
                     seg_sample_main_paths=self.seg_file_path,
                     seg_slice_list=self.seg_slice_val,
                     **params_val_generator)
+
+
+            self.model = self.model_fn(**model_params)
+
+            self.logger.info('model has been built successfully')
+
+
+            if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
+                CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
+            else:
+                CUDA_VISIBLE_DEVICES = ['None']
+
+            if self.multi_gpu == True and len(CUDA_VISIBLE_DEVICES) > 1:
+
+                self.model_parallel = multi_gpu_model(self.model, gpus=len(CUDA_VISIBLE_DEVICES))
+                self.model_parallel.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+
+            else:
+                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+
+                self.model_parallel = self.model
+
+
+            if self.relative_save_weight_peroid is not None:
+                period = int(epoch_size / self.relative_save_weight_peroid)
+            else:
+                period = None
+
+
+            model_weight_saver_callback = ModelWeightSaver(self.model, self.model_weights_filename, period=period,
+                                                           total_epoch_size=epoch_size)
+
+            model_logger = Histroies_Logger(self.logger)
 
             self.logger.info('training started')
 
