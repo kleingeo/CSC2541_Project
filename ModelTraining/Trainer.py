@@ -256,18 +256,18 @@ class Trainer():
             'training history file is ' + str(self.training_history_filename))
 
 
-    def save_training_history(self, history_df, training_history_filename):
+    def save_training_history(self):
         """
         this method saves the training history to a file
         """
 
         try:
-            history_df.to_csv(training_history_filename, index=False)
+            self.history_df.to_csv(self.training_history_filename, index=False)
             self.logger.info(
-                'history was saved successfully to ' + training_history_filename)
+                'history was saved successfully to ' + self.training_history_filename)
         except:
             self.logger.error(
-                'history file could not be saved to ' + training_history_filename)
+                'history file could not be saved to ' + self.training_history_filename)
 
 
     def save_model_to_json(self):
