@@ -35,7 +35,7 @@ if __name__ == '__main__':
     seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
 
 
-    params_dictionary = dict(model_type=['VNet', 'IUNet', 'UNet', 'VGG', 'ResNet'],
+    params_dictionary = dict(model_type=['UNet', 'IUNet', 'VNet', 'VGG', 'ResNet'],
                              Epochs=[100],
                              batch_size=[45],
                              augment_training=[True],
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                              with_fake=[True, False])
 
 
-    trainer = Trainer(output_directory='../TrainOutput',
+    trainer = Trainer(output_directory='../TrainOutput_test',
 
                       t2_img_filelist_train=t2_filelist_train,
                       seg_filelist_train=seg_filelist_train,

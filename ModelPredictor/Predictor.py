@@ -8,6 +8,7 @@ Created on Jan 23, 2018
 import os
 import numpy as np
 import pandas as pd
+import SimpleITK as sitk
 from keras.models import model_from_json
 
 
@@ -19,9 +20,10 @@ import logging
 from logging.config import dictConfig
 
 # from UNetScripts.TrainerPredictorUtils import TrainerPredictorUtils
-# import Util.filename_constants as FileConstUtil
+import Util.filename_constants as FileConstUtil
 
 from Dataset.DataGenerator import DataGenerator
+
 
 
 class Predictor:
@@ -32,7 +34,6 @@ class Predictor:
     def __init__(self,
                  model_weights_filename,
                  model_json_filename,
-                 sample_size,
                  testing_sample_dataframe,
                  main_sample_directory,
                  main_output_directory,
@@ -63,13 +64,11 @@ class Predictor:
         self.testing_sample_dataframe = testing_sample_dataframe
 
         self.main_sample_directory = main_sample_directory
-        self.sample_size = sample_size
+        # self.sample_size = sample_size
         self.save_predictions = save_predictions
         self.time_stamp = time_stamp
 
 
-        #
-        # self.time_stamp = self.model_weights_filename.split('/')[0]
 
         self.predicting_log_name = predicting_log_name
 
@@ -113,6 +112,9 @@ class Predictor:
         self.model = model_from_json(loaded_model_json)
         # now load weights
 
+        self.sample_size = self.model.input_shape[1:-1]
+        self.num_channels = self.model.input_shape[-1]
+
         self.model.load_weights(self.model_weights_filename)
         # set the compilation parameters
 
@@ -122,7 +124,8 @@ class Predictor:
 
         self.logger.info('model loaded')
 
-    def create_predicted_batch_filename(self, test_batch_filename, predictions_test_target):
+    def create_predicted_batch_filename(self, test_batch_filename, predictions_test_target, img_type,
+                                        modality=None, slice_number=None):
         """
         this method generates a filename for the predictions to be saved to
         the filename is built based on the model_weights_filename and
@@ -131,6 +134,8 @@ class Predictor:
         :param test_batch_filename: this is the filename of the test batch
 
         """
+
+        assert img_type in ['seg', 'test'], 'Ensure that either a test image or segmentation is passed.'
 
         base_filename = test_batch_filename.split('.')[0]
 
@@ -144,10 +149,35 @@ class Predictor:
 
             os.makedirs(pred_batch_main_path)
 
+        pred_batch_filename = ''
 
-        pred_batch_filename = pred_batch_main_path + '/' + base_filename + predictions_test_target\
-                              + '.npy'
+        if img_type is 'test':
 
+            base_filename_split = base_filename.split('_')
+
+
+            base_filename = '_'.join([base_filename_split[1],
+                                      base_filename_split[2],
+                                      base_filename_split[3],
+                                      base_filename_split[4],
+                                      base_filename_split[6]])
+
+            if modality is not None:
+                pred_batch_filename = pred_batch_main_path + '/' + base_filename + '_' + modality + predictions_test_target + FileConstUtil.NIFTI_EXTENSION()
+
+            else:
+                pred_batch_filename = pred_batch_main_path + '/' + base_filename + predictions_test_target\
+                                      + FileConstUtil.NIFTI_EXTENSION()
+
+        elif img_type is 'seg':
+
+            base_filename_split = base_filename.split('_seg')
+
+            if slice_number is not None:
+                pred_batch_filename = pred_batch_main_path + '/' + base_filename_split[0] + '_' + str(slice_number) + '_seg' + predictions_test_target + FileConstUtil.NIFTI_EXTENSION()
+
+            else:
+                pred_batch_filename = pred_batch_main_path + '/' + base_filename_split[0] + '_seg' + predictions_test_target + FileConstUtil.NIFTI_EXTENSION()
 
         return pred_batch_filename
 
@@ -162,6 +192,8 @@ class Predictor:
 
         self.model = None
         self.load_model()
+
+        # self.model.input_shape
 
         # take care of evaluations and evaluation filename
 
@@ -178,7 +210,7 @@ class Predictor:
         flair_img_test = self.testing_sample_dataframe['flair_filename'].tolist()
 
 
-        seg_test = self.testing_sample_dataframe['seg_filename'].tolist()
+        seg_img_test = self.testing_sample_dataframe['seg_filename'].tolist()
         seg_slice = self.testing_sample_dataframe['slice_number'].tolist()
 
         t2_file_path = self.main_sample_directory['t2']
@@ -187,31 +219,45 @@ class Predictor:
 
         seg_file_path = self.main_sample_directory['seg']
 
+        if self.num_channels == 3:
 
-        params_test_gen = {'sample_size': self.sample_size,
-                           'batch_size': 1,
-                           'n_channels': 3,
-                           'shuffle': False,
-                           'augment_data': False}
+            params_test_gen = {'sample_size': self.sample_size,
+                               'batch_size': 1,
+                               'n_channels': self.num_channels,
+                               'shuffle': False,
+                               'augment_data': False}
 
-        test_gen = DataGenerator(
-            t2_sample=t2_img_test,
-            seg_sample=seg_test,
-            t2_sample_main_path=t2_file_path,
-            seg_sample_main_paths=seg_file_path,
-            seg_slice_list=seg_slice,
-            t1_sample=t1_img_test,
-            flair_sample=flair_img_test,
-            t1_sample_main_path=t1_file_path,
-            flair_sample_main_path=flair_file_path,
-            **params_test_gen)
+            test_gen = DataGenerator(
+                t2_sample=t2_img_test,
+                seg_sample=seg_img_test,
+                t2_sample_main_path=t2_file_path,
+                seg_sample_main_paths=seg_file_path,
+                seg_slice_list=seg_slice,
+                t1_sample=t1_img_test,
+                flair_sample=flair_img_test,
+                t1_sample_main_path=t1_file_path,
+                flair_sample_main_path=flair_file_path,
+                **params_test_gen)
 
-        self.model.
+        if self.num_channels == 1:
+            params_test_gen = {'sample_size': self.sample_size,
+                               'batch_size': 1,
+                               'n_channels': self.num_channels,
+                               'shuffle': False,
+                               'augment_data': False}
+
+            test_gen = DataGenerator(
+                t2_sample=t2_img_test,
+                seg_sample=seg_img_test,
+                t2_sample_main_path=t2_file_path,
+                seg_sample_main_paths=seg_file_path,
+                seg_slice_list=seg_slice,
+                **params_test_gen)
 
         for idx in range(len(t2_img_test)):
 
-            print(('loading batch ' + str(idx) + ' of '
-                   + str(len(x_test))))
+            print(('loading batch ' + str(idx + 1) + ' of '
+                   + str(len(t2_img_test))))
 
 
             test_images, ground_truth_masks = test_gen.__getitem__(idx)
@@ -221,28 +267,31 @@ class Predictor:
             self.logger.info('Prediction and evaluating batch ' + str(idx))
 
 
-            if test_images is not None and ground_truth_masks is not None:
+            results = self.model.test_on_batch(test_images, ground_truth_masks)
 
-                results = self.model.test_on_batch(test_images, ground_truth_masks)
+            dict_hold = {'test_file': t2_img_test[idx],
+                         'ground_truth': seg_img_test[idx]}
 
-                dict_hold = {'test_file': x_test[idx],
-                             'ground_truth': y_test[idx],
-                             'dataframe_idx': df_index_list[idx]}
+            for idx2 in range(len(self.model.metrics_names)):
 
-                for idx2 in range(len(self.model.metrics_names)):
+                dict_hold[self.model.metrics_names[idx2]] = results[idx2]
 
-                    dict_hold[self.model.metrics_names[idx2]] = results[idx2]
-
-                self.measures_df = self.measures_df.append(dict_hold, ignore_index=True)
+            self.measures_df = self.measures_df.append(dict_hold, ignore_index=True)
 
 
-            if (test_images is not None) and (self.save_predictions is True):
+            if self.save_predictions is True:
 
-                test_filename = self.create_predicted_batch_filename(x_test[idx], FileConstUtil.TEST_DATA())
 
-                ground_truth_filename = self.create_predicted_batch_filename(y_test[idx], FileConstUtil.TEST_DATA_TARGET())
 
-                predicted_filename = self.create_predicted_batch_filename(y_test[idx], FileConstUtil.PREDICTION())
+                ground_truth_filename = self.create_predicted_batch_filename(seg_img_test[idx],
+                                                                             FileConstUtil.GROUND_TRUTH(),
+                                                                             img_type='seg',
+                                                                             slice_number=seg_slice[idx])
+
+                predicted_filename = self.create_predicted_batch_filename(seg_img_test[idx],
+                                                                          FileConstUtil.PREDICTION(),
+                                                                          img_type='seg',
+                                                                          slice_number=seg_slice[idx])
 
 
                 predicted_masks = self.model.predict_on_batch(test_images)
@@ -254,16 +303,49 @@ class Predictor:
                 predicted_masks2[predicted_masks > 0.5] = 1
                 predicted_masks2[predicted_masks <= 0.5] = 0
 
-                predicted_masks_img = sitk.GetImageFromArray(predicted_masks2[0, :, :, :, 0])
+                predicted_masks_img = sitk.GetImageFromArray(predicted_masks2[0, :, :, 0])
 
-                ground_truth_img = sitk.GetImageFromArray(ground_truth_masks[0, :, :, :, 0])
+                ground_truth_img = sitk.GetImageFromArray(ground_truth_masks[0, :, :, 0])
 
-                test_img = sitk.GetImageFromArray(test_images[0, :, :, :, 0])
 
 
                 sitk.WriteImage(predicted_masks_img, predicted_filename)
                 sitk.WriteImage(ground_truth_img, ground_truth_filename)
-                sitk.WriteImage(test_img, test_filename)
+
+                if self.num_channels == 3:
+                    t2_test_filename = self.create_predicted_batch_filename(t2_img_test[idx],
+                                                                            FileConstUtil.TEST_DATA(),
+                                                                            img_type='test',
+                                                                            modality='t2')
+
+                    t1_test_filename = self.create_predicted_batch_filename(t1_img_test[idx],
+                                                                            FileConstUtil.TEST_DATA(),
+                                                                            img_type='test',
+                                                                            modality='t1')
+
+                    flair_test_filename = self.create_predicted_batch_filename(flair_img_test[idx],
+                                                                               FileConstUtil.TEST_DATA(),
+                                                                               img_type='test',
+                                                                               modality='flair')
+
+
+                    t2_test_img = sitk.GetImageFromArray(test_images[0, :, :, 0])
+                    t1_test_img = sitk.GetImageFromArray(test_images[0, :, :, 1])
+                    flair_test_img = sitk.GetImageFromArray(test_images[0, :, :, 2])
+
+
+                    sitk.WriteImage(t2_test_img, t2_test_filename)
+                    sitk.WriteImage(t1_test_img, t1_test_filename)
+                    sitk.WriteImage(flair_test_img, flair_test_filename)
+
+
+                if self.num_channels == 1:
+                    t2_test_filename = self.create_predicted_batch_filename(t2_img_test[idx],
+                                                                            FileConstUtil.TEST_DATA(),
+                                                                            img_type='test',
+                                                                            modality='t2')
+                    t2_test_img = sitk.GetImageFromArray(test_images[0, :, :, 0])
+                    sitk.WriteImage(t2_test_img, t2_test_filename)
 
                 self.logger.info(
                 'Evaluation completed on batch ' + str(idx))
@@ -323,25 +405,3 @@ class Predictor:
                 self.evaluation_filename)
 
 
-
-if __name__ == "__main__":
-    import sys
-
-    logger = config_initialization.logging.getLogger(__name__)
-    parser = get_parser()
-    try:
-        args = parser.parse_args()
-        logger.info(args)
-        main_driver(args.json_file,
-                    args.weights_file,
-                    args.batches_dir,
-                    args.output_dir,
-                    args.batches_dir_type,
-                    args.optimizer_type
-                    )
-    except ArgumentError as arg_exception:
-        logger.error("Argument Error: {0}".format(arg_exception))
-    except Exception as exception:
-        logger.error("Exception: {0}".format(exception))
-
-    sys.exit()

@@ -413,6 +413,7 @@ class Trainer():
 
             self.logger.info('model has been built successfully')
 
+            self.optimizer = keras.optimizers.Adam(lr=1e-5)
 
             if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
                 CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
@@ -422,10 +423,10 @@ class Trainer():
             if self.multi_gpu == True and len(CUDA_VISIBLE_DEVICES) > 1:
 
                 self.model_parallel = multi_gpu_model(self.model, gpus=len(CUDA_VISIBLE_DEVICES))
-                self.model_parallel.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+                self.model_parallel.compile(optimizer=self.optimizer, loss=dice_loss, metrics=[dice])
 
             else:
-                self.model.compile(optimizer='ADAM', loss=dice_loss, metrics=[dice])
+                self.model.compile(optimizer=self.optimizer, loss=dice_loss, metrics=[dice])
 
                 self.model_parallel = self.model
 
@@ -442,6 +443,9 @@ class Trainer():
             model_logger = Histroies_Logger(self.logger)
 
             self.logger.info('training started')
+
+            self.save_model_to_json()
+
 
             history = self.model_parallel.fit_generator(
                 generator=training_generator,

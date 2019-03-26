@@ -1,4 +1,3 @@
-import keras.backend as K
 from ModelPredictor.Predictor import Predictor
 import pandas as pd
 import os
@@ -13,26 +12,27 @@ if __name__ == '__main__':
     flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
 
     sample_main_path = {'t2': t2_file_path,
-                   't1': t1_file_path,
-                   'flair': flair_file_path,
-                   'seg': seg_file_path}
+                        't1': t1_file_path,
+                        'flair': flair_file_path,
+                        'seg': seg_file_path}
 
 
+    df_testing = df.loc[df['train_val_test'] == 'val'].iloc[10:15]
 
 
     df_total_eval_dsc = None
 
-    top_output_directory = 'TrainOutput'
+    top_output_directory = '../TrainOutput'
 
-    time_stamp = '2019-03-21-09-07'
+    time_stamp = '2019-03-24-12-23'
 
 
 
     for idx, dir in enumerate(os.listdir(top_output_directory + '/' + time_stamp)):
 
 
-        # if (dir != 'vnet_adam_1_5_3_32_0_True_None') or (dir != 'vnet_adam_1_6_3_32_0_True_None'):
-        #     continue
+        if (dir != 'VNet_1_True_True'):
+            continue
 
 
         if os.path.isfile(top_output_directory + '/' + time_stamp + '/' + dir):
@@ -70,15 +70,12 @@ if __name__ == '__main__':
 
             pred = Predictor(model_weights_filename=model_weights_filename,
                              model_json_filename=model_json_filename + '.json',
-                             sample_size=(64, 128, 128),
-                             testing_sample_dataframe=testing_sample_dataframe,
-                             input_type='Nifti',
+                             testing_sample_dataframe=df_testing,
                              main_sample_directory=sample_main_path,
                              main_output_directory=top_output_directory,
                              model_output_directory=model_output_directory,
-                             save_predictions=save_predictions,
-                             time_stamp=time_stamp,
-                             crop_size=None)
+                             save_predictions=True,
+                             time_stamp=time_stamp)
 
             if os.path.exists(pred.evaluation_filename + '.pickle'):
 
@@ -95,32 +92,16 @@ if __name__ == '__main__':
             # Initialize dataframe of all evaluations
             if df_total_eval_dsc is None:
 
-                df_total_eval_dsc = df_eval[['test_file', 'ground_truth', 'dataframe_idx']]
-
-            if df_total_eval_concurracy is None:
-
-                df_total_eval_concurracy = df_eval[['test_file', 'ground_truth', 'dataframe_idx']]
+                df_total_eval_dsc = df_eval[['test_file', 'ground_truth']]
 
 
-            df_total_eval_dsc = pd.concat([df_total_eval_dsc, df_eval['dice_coef']], axis=1)
-            df_total_eval_concurracy = pd.concat([df_total_eval_concurracy, df_eval['concurrency']], axis=1)
-
+            df_total_eval_dsc = pd.concat([df_total_eval_dsc, df_eval['dice']], axis=1)
 
             column_name = weights.split('_weights')[0]
 
-            df_total_eval_dsc = df_total_eval_dsc.rename(columns={"dice_coef": column_name})
-            df_total_eval_concurracy = df_total_eval_concurracy.rename(columns={"concurrency": column_name})
+            df_total_eval_dsc = df_total_eval_dsc.rename(columns={"dice": column_name})
 
 
-
-
-
-
-    df_total_eval_dsc.to_pickle(top_output_directory + '/' + time_stamp + '/' + 'validation_dice_scores.pickle')
-
-    df_total_eval_dsc.to_csv(top_output_directory + '/' + time_stamp + '/' + 'validation_dice_scores.csv', index=False)
-
-
-    df_total_eval_concurracy.to_pickle(top_output_directory + '/' + time_stamp + '/' + 'validation_concurrancy_scores.pickle')
-
-    df_total_eval_concurracy.to_csv(top_output_directory + '/' + time_stamp + '/' + 'validation_concurrancy_scores.csv', index=False)
+    # df_total_eval_dsc.to_pickle(top_output_directory + '/' + time_stamp + '/' + 'validation_dice_scores.pickle')
+    #
+    # df_total_eval_dsc.to_csv(top_output_directory + '/' + time_stamp + '/' + 'validation_dice_scores.csv', index=False)
