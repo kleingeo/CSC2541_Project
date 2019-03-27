@@ -1,0 +1,13 @@
+python test.py \
+    --dataroot ./datasets/hn \
+    --name cyclegan_3d_hn \
+    --model cycle_gan \
+    --dataset_mode unaligned3dtoimage \
+    --phase test \
+    --no_dropout \
+    --display_port 8098 \
+    --input_nc 1 \
+    --output_nc 1 \
+    --which_direction AtoB \
+    --gpu_ids 1 \
+    --how_many 100

@@ -1,0 +1,17 @@
+python test.py \
+    --dataroot ./datasets/BRATS18Slices \
+    --name pix2pix_3d_cns-batchSize180_T2T1_lambda10000 \
+    --model pix2pix \
+    --which_model_netG unet_256 \
+    --which_direction AtoB \
+    --dataset_mode aligned2dtoimage \
+    --norm batch \
+    --input_nc 1 \
+    --output_nc 1 \
+    --ngf 64 \
+    --ndf 64 \
+    --display_port 8097 \
+    --gpu_ids 1 \
+    --how_many 100000 \
+    --loadSize 256 \
+    --fineSize 256 \

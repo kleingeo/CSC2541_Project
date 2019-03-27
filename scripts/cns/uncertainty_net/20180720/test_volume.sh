@@ -1,0 +1,15 @@
+python test_volume.py \
+    --dataroot ./datasets/cns_2d \
+    --name pix2pix_uncertainty_net_iter200 \
+    --model pix2pix_uncertainty_net \
+    --which_model_netG unet_uncertainty_256 \
+    --which_direction AtoB \
+    --dataset_mode aligned2dtoimage \
+    --norm batch \
+    --input_nc 3 \
+    --output_nc 1 \
+    --ngf 64 \
+    --ndf 64 \
+    --display_port 8098 \
+    --gpu_ids 1 \
+    --how_many 200

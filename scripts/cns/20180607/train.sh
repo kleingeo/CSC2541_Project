@@ -1,0 +1,28 @@
+# CT scaled from [-2000, +3000]
+python train.py \
+    --dataroot ./datasets/cns_2d_v02 \
+    --name pix2pix_2d_cns_20180607 \
+    --model pix2pix \
+    --which_model_netG unet_256 \
+    --which_model_netD basic \
+    --ngf 64 \
+    --ndf 64 \
+    --which_direction AtoB \
+    --lambda_A 10000 \
+    --dataset_mode aligned2dnpy \
+    --no_lsgan \
+    --norm batch \
+    --pool_size 0 \
+    --input_nc 3 \
+    --output_nc 1 \
+    --save_epoch_freq 10 \
+    --save_latest_freq 5000 \
+    --display_port 8098 \
+    --display_freq 100 \
+    --print_freq 100 \
+    --gpu_ids 0,1 \
+    --batchSize 180 \
+    --niter 100 \
+    --niter_decay 100 \
+    --init_type normal \
+    --display_ncols 3

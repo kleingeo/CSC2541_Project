@@ -1,0 +1,25 @@
+python train.py \
+    --dataroot ./datasets/cns_2d \
+    --name cyclegan-cns_2d \
+    --model cycle_gan \
+    --ngf 32 \
+    --ndf 64 \
+    --which_direction AtoB \
+    --dataset_mode unaligned2dtoimage \
+    --pool_size 50 \
+    --input_nc 3 \
+    --output_nc 1 \
+    --save_epoch_freq 10 \
+    --save_latest_freq 5000 \
+    --display_port 8098 \
+    --display_freq 1000 \
+    --print_freq 500 \
+    --gpu_ids 0,1 \
+    --batchSize 20 \
+    --niter 100 \
+    --niter_decay 100 \
+    --init_type normal \
+    --display_ncols 6 \
+    --lambda_identity 0 \
+    --lambda_A 10 \
+    --lambda_B 10

@@ -1,0 +1,27 @@
+python train.py \
+    --dataroot ./datasets/cns \
+    --name pix2pix_3d_cns-BATCHNORM \
+    --model pix2pix \
+    --which_model_netG unet_256 \
+    --which_model_netD basic \
+    --ngf 64 \
+    --ndf 64 \
+    --which_direction AtoB \
+    --lambda_A 10000 \
+    --dataset_mode aligned3dtoimage \
+    --no_lsgan \
+    --norm batch \
+    --pool_size 0 \
+    --input_nc 3 \
+    --output_nc 1 \
+    --save_epoch_freq 10 \
+    --save_latest_freq 5000 \
+    --display_port 8098 \
+    --display_freq 50 \
+    --print_freq 50 \
+    --gpu_ids 0 \
+    --batchSize 64 \
+    --niter 100 \
+    --niter_decay 100 \
+    --init_type normal \
+    --display_ncols 3

@@ -1,0 +1,26 @@
+python train.py \
+    --dataroot ./datasets/hn \
+    --name pix2pix_3d_hn \
+    --model pix2pix \
+    --which_model_netG unet3d_256 \
+    --which_model_netD basic3d \
+    --ngf 64 \
+    --ndf 64 \
+    --which_direction AtoB \
+    --lambda_A 1000 \
+    --dataset_mode aligned3d \
+    --no_lsgan \
+    --norm batch3d \
+    --pool_size 0 \
+    --input_nc 1 \
+    --output_nc 1 \
+    --save_epoch_freq 50 \
+    --save_latest_freq 5000 \
+    --display_port 8098 \
+    --display_freq 10 \
+    --print_freq 10 \
+    --gpu_ids 0,1 \
+    --batchSize 2 \
+    --niter 1000 \
+    --niter_decay 1000 \
+    --init_type xavier

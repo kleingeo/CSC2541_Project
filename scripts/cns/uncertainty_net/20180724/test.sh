@@ -1,0 +1,15 @@
+python test.py \
+    --dataroot ./datasets/cns_2d_v02 \
+    --name reg_uncertainty_net_20180724 \
+    --model reg_unc_net \
+    --which_model_netG unet_uncertainty_256 \
+    --which_direction AtoB \
+    --dataset_mode aligned2dnpy \
+    --norm batch \
+    --input_nc 3 \
+    --output_nc 1 \
+    --ngf 64 \
+    --ndf 64 \
+    --display_port 8098 \
+    --gpu_ids 1 \
+    --how_many 200

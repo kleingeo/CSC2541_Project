@@ -1,0 +1,28 @@
+python train.py \
+    --dataroot ./datasets/BRATS18Slices \
+    --name pix2pix_3d_cns-batchSize180_T2T1_lambda10000 \
+    --model pix2pix \
+    --which_model_netG unet_256 \
+    --which_model_netD basic \
+    --ngf 64 \
+    --ndf 64 \
+    --which_direction AtoB \
+    --lambda_A 10000 \
+    --dataset_mode aligned2dtoimage \
+    --no_lsgan \
+    --norm batch \
+    --pool_size 0 \
+    --input_nc 1 \
+    --output_nc 1 \
+    --save_epoch_freq 10 \
+    --save_latest_freq 5000 \
+    --display_port 8097 \
+    --display_freq 100 \
+    --print_freq 100 \
+    --gpu_ids 0 \
+    --batchSize 90 \
+    --niter 50 \
+    --niter_decay 50 \
+    --init_type normal \
+    --display_ncols 3 \
+    

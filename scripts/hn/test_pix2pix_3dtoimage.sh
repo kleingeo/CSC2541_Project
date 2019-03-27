@@ -1,0 +1,15 @@
+python test.py \
+    --dataroot ./datasets/hn \
+    --name pix2pix_3d_hn \
+    --model pix2pix \
+    --which_model_netG unet_256 \
+    --which_direction AtoB \
+    --dataset_mode aligned3dtoimage \
+    --norm batch \
+    --input_nc 1 \
+    --output_nc 1 \
+    --ngf 64 \
+    --ndf 64 \
+    --display_port 8098 \
+    --gpu_ids 0 \
+    --how_many 6000
