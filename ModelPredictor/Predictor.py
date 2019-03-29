@@ -269,7 +269,18 @@ class Predictor:
 
             results = self.model.test_on_batch(test_images, ground_truth_masks)
 
-            dict_hold = {'test_file': t2_img_test[idx],
+            base_filename_split = t2_img_test[idx].split('_')
+
+
+            base_filename = '_'.join([base_filename_split[1],
+                                      base_filename_split[2],
+                                      base_filename_split[3],
+                                      base_filename_split[4],
+                                      base_filename_split[6]])
+
+
+
+            dict_hold = {'test_file': base_filename,
                          'ground_truth': seg_img_test[idx]}
 
             for idx2 in range(len(self.model.metrics_names)):

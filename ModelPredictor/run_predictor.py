@@ -11,27 +11,33 @@ if __name__ == '__main__':
     t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
     flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
 
+    # t2_file_path = 'D:/Geoff_KLein/BRATS2018/T2_T1'
+    # seg_file_path = 'D:/Geoff_KLein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
+    # t1_file_path = 'D:/Geoff_KLein/BRATS2018/T2_T1'
+    # flair_file_path = 'D:/Geoff_KLein/BRATS2018/T2_Flair'
+
+
     sample_main_path = {'t2': t2_file_path,
                         't1': t1_file_path,
                         'flair': flair_file_path,
                         'seg': seg_file_path}
 
 
-    df_testing = df.loc[df['train_val_test'] == 'val'].iloc[10:15]
+    df_testing = df.loc[df['train_val_test'] == 'val']
 
 
     df_total_eval_dsc = None
 
     top_output_directory = '../TrainOutput'
 
-    time_stamp = '2019-03-24-12-23'
+    time_stamp = '2019-03-27-15-51'
 
 
 
     for idx, dir in enumerate(os.listdir(top_output_directory + '/' + time_stamp)):
 
 
-        if (dir != 'VNet_1_True_True'):
+        if (dir != 'UNet_1_False_True'):
             continue
 
 
@@ -52,6 +58,9 @@ if __name__ == '__main__':
 
             if weights.endswith('_weights.h5') is False:
 
+                continue
+
+            if weights.endswith('100_weights.h5') is False:
                 continue
 
             model_weights_filename = weights_folder_path + '/' + weights

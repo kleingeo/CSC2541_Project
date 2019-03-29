@@ -12,7 +12,8 @@ if __name__ == '__main__':
 
 
 
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
+    # df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_rev2.pickle')
 
     t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
     seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
@@ -35,15 +36,23 @@ if __name__ == '__main__':
     seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
 
 
-    params_dictionary = dict(model_type=['UNet', 'IUNet', 'VNet', 'VGG', 'ResNet'],
+    # params_dictionary = dict(model_type=['UNet', 'IUNet', 'VNet', 'VGG', 'ResNet'],
+    #                          Epochs=[100],
+    #                          batch_size=[45],
+    #                          augment_training=[True],
+    #                          train_fraction=[1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
+    #                          with_fake=[True, False])
+
+
+    params_dictionary = dict(model_type=['UNet'],
                              Epochs=[100],
                              batch_size=[45],
-                             augment_training=[True],
-                             train_fraction=[1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2],
-                             with_fake=[True, False])
+                             augment_training=[False],
+                             with_fake=[False],
+                             train_fraction=[1],
+                             )
 
-
-    trainer = Trainer(output_directory='../TrainOutput',
+    trainer = Trainer(output_directory='../TrainOutput_test',
 
                       t2_img_filelist_train=t2_filelist_train,
                       seg_filelist_train=seg_filelist_train,

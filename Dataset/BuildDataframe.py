@@ -3,6 +3,8 @@ import numpy as np
 import os
 import nibabel as nib
 
+np.random.seed(1)
+
 def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
     df = pd.DataFrame(columns=['volume_name',
@@ -29,15 +31,15 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
         seg_file_path = seg_path_main + '/' + volume_name
 
-        # seg_img = nib.load(seg_file_path + '/' + seg_filename)
-        #
-        # seg_data = seg_img.get_fdata()[:, :, slice_number]
-        #
-        # seg_data[seg_data == 2] = 0
-        #
-        # # Ignore slices of both the image and label that are only zero
-        # if seg_data.max() == seg_data.min():
-        #     continue
+        seg_img = nib.load(seg_file_path + '/' + seg_filename)
+
+        seg_data = seg_img.get_fdata()[:, :, slice_number]
+
+        seg_data[seg_data == 2] = 0
+
+        # Ignore slices of both the image and label that are only zero
+        if seg_data.max() == seg_data.min():
+            continue
 
         train_val_test = 'hold'
 
@@ -81,9 +83,19 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
     volume_name_list, volume_name_slices = np.unique(df['volume_name'].values, return_counts=True)
 
-    for idx, volume_name in enumerate(volume_name_list):
+    vol_idx = np.arange(len(volume_name_list))
 
-        N_sample_slices = volume_name_slices[idx]
+    vol_idx_shuffled = np.copy(vol_idx)
+
+    np.random.shuffle(vol_idx_shuffled)
+
+    volume_name_list_shuffled = volume_name_list[vol_idx_shuffled]
+
+    volume_name_slices_shuffled = volume_name_slices[vol_idx_shuffled]
+
+    for idx, volume_name in enumerate(volume_name_list_shuffled):
+
+        N_sample_slices = volume_name_slices_shuffled[idx]
 
         if (N_sample_slices + num_train) < N_train:
             train_val_test = 'train'
@@ -105,13 +117,62 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
 if __name__ == '__main__':
 
-    image_path_t2_t1 = 'D:/Geoff_Klein/BRATS18/T2_Flair'
+    # image_path_t2_t1 = 'D:/Geoff_Klein/BRATS18/T2_Flair'
+    #
+    # image_path_t2_flair = 'D:/Geoff_Klein/BRATS18/T2_T1'
+    #
+    # seg_path_main = 'D:/Geoff_Klein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
+    #
+    # df = build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main)
+    #
+    # df.to_csv('seg_slice_dataframe_shuffled.csv', index=False)
+    # df.to_pickle('seg_slice_dataframe_shuffled.pickle')
 
-    image_path_t2_flair = 'D:/Geoff_Klein/BRATS18/T2_T1'
+    df = pd.read_pickle('seg_slice_dataframe.pickle')
 
-    seg_path_main = 'D:/Geoff_Klein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
 
-    df = build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main)
 
-    df.to_csv('seg_slice_dataframe_rev2.csv', index=False)
-    df.to_pickle('seg_slice_dataframe_rev2.pickle')
+    total_slices = df.shape[0]
+
+    N_train = int(total_slices * 0.7)
+    N_val = int(total_slices * 0.15)
+    N_test = int(total_slices * 0.15)
+
+
+    num_train = 0
+    num_val = 0
+    num_test = 0
+
+    volume_name_list, volume_name_slices = np.unique(df['volume_name'].values, return_counts=True)
+
+    vol_idx = np.arange(len(volume_name_list))
+
+    vol_idx_shuffled = np.copy(vol_idx)
+
+    np.random.shuffle(vol_idx_shuffled)
+
+    volume_name_list_shuffled = volume_name_list[vol_idx_shuffled]
+
+    volume_name_slices_shuffled = volume_name_slices[vol_idx_shuffled]
+
+    for idx, volume_name in enumerate(volume_name_list_shuffled):
+
+        N_sample_slices = volume_name_slices_shuffled[idx]
+
+        if (N_sample_slices + num_train) < N_train:
+            train_val_test = 'train'
+            num_train = num_train + N_sample_slices
+
+        elif (N_sample_slices + num_val) < N_val:
+            train_val_test = 'val'
+            num_val = num_val + N_sample_slices
+
+        else:
+            train_val_test = 'test'
+            num_test = num_test + N_sample_slices
+
+        df['train_val_test'].loc[df['volume_name'] == volume_name] = train_val_test
+
+
+    df.to_csv('seg_slice_dataframe_shuffled_rev2.csv', index=False)
+    df.to_pickle('seg_slice_dataframe_shuffled_rev2.pickle')
