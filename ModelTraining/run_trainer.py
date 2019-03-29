@@ -43,7 +43,7 @@ if __name__ == '__main__':
                              with_fake=[True, False])
 
 
-    trainer = Trainer(output_directory='../TrainOutput_test',
+    trainer = Trainer(output_directory='../TrainOutput',
 
                       t2_img_filelist_train=t2_filelist_train,
                       seg_filelist_train=seg_filelist_train,

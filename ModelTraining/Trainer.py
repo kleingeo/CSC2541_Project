@@ -413,7 +413,7 @@ class Trainer():
 
             self.logger.info('model has been built successfully')
 
-            self.optimizer = keras.optimizers.Adam(lr=1e-5)
+            self.optimizer = keras.optimizers.Adam(lr=1e-4)
 
             if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
                 CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
@@ -449,7 +449,7 @@ class Trainer():
 
             history = self.model_parallel.fit_generator(
                 generator=training_generator,
-                steps_per_epoch=int(len(self.t2_img_filelist_train) / batch_size),
+                steps_per_epoch=int(len(self.t2_img_filelist_train[:train_size]) / batch_size),
                 epochs=epoch_size,
                 callbacks=[model_weight_saver_callback, model_logger],
                 validation_data=validation_generator,

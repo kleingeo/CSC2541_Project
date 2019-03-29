@@ -46,8 +46,8 @@ class GridSearchUtil:
         from itertools import product
 
         default_dictionary = dict(model_type=self.get_model_type(),
-                                  train_faction=self.get_train_fraction(),
                                   with_fake=self.get_with_fake(),
+                                  train_faction=self.get_train_fraction(),
                                   epochs=self.get_epochs(),
                                   batch_size=self.get_batch_sizes(),
                                   augment_training=self.get_augment_training(),
@@ -56,11 +56,11 @@ class GridSearchUtil:
         if Util.MODEL_TYPE() in params_dictionary.keys():
             default_dictionary[Util.MODEL_TYPE()] = params_dictionary[Util.MODEL_TYPE()]
 
-        if Util.TRAIN_FRAC() in params_dictionary.keys():
-            default_dictionary[Util.TRAIN_FRAC()] = params_dictionary[Util.TRAIN_FRAC()]
-
         if Util.WITH_FAKE() in params_dictionary.keys():
             default_dictionary[Util.WITH_FAKE()] = params_dictionary[Util.WITH_FAKE()]
+
+        if Util.TRAIN_FRAC() in params_dictionary.keys():
+            default_dictionary[Util.TRAIN_FRAC()] = params_dictionary[Util.TRAIN_FRAC()]
 
         if Util.EPOCHS() in params_dictionary.keys():
             default_dictionary[Util.EPOCHS()] = params_dictionary[Util.EPOCHS()]

@@ -297,17 +297,17 @@ class DataGenerator(keras.utils.Sequence):
             seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
 
 
-            t2_img = resize(t2_img, output_shape=self.sample_size, order=1,
+            t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
                             mode='reflect', anti_aliasing=True)
             seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
                              mode='reflect', anti_aliasing=True)
 
             if t1_sample is not None:
-                t1_img = resize(t1_img, output_shape=self.sample_size, order=1,
+                t1_img = resize(t1_img, output_shape=self.sample_size, order=3,
                                 mode='reflect', anti_aliasing=True)
 
             if flair_sample is not None:
-                flair_img = resize(flair_img, output_shape=self.sample_size, order=1,
+                flair_img = resize(flair_img, output_shape=self.sample_size, order=3,
                                    mode='reflect', anti_aliasing=True)
 
             if self.augment_data:
