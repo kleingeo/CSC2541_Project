@@ -22,7 +22,7 @@ def get_unet(img_shape = (512, 512),
              pool_1d_size = 2,
              deconvolution = False,
              dropout = 0,
-             num_classes = 3,
+             num_classes = 1,
              num_channels = 1):
 
 

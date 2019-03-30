@@ -9,7 +9,7 @@ def ModelParamUtil(model_name):
 
         model_params = {'dilation_rate': 1,
                         'depth': 5,
-                        'base_filter': 16,
+                        'base_filter': 32,
                         'batch_normalization': False,
                         'pool_1d_size': 2,
                         'deconvolution': False,
@@ -22,7 +22,7 @@ def ModelParamUtil(model_name):
 
         model_params = {'dilation_rate': 1,
                         'depth': 5,
-                        'base_filter': 16,
+                        'base_filter': 32,
                         'batch_normalization': False,
                         'pool_1d_size': 2,
                         'deconvolution': False,
@@ -51,7 +51,7 @@ def ModelParamUtil(model_name):
 
         model_params = {'dilation_rate': 1,
                         'depth': 5,
-                        'base_filter': 16,
+                        'base_filter': 32,
                         'batch_normalization': False,
                         'deconvolution': True,
                         'dropout': 0.0,

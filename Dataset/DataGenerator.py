@@ -217,6 +217,13 @@ class DataGenerator(keras.utils.Sequence):
 
 
 
+        # sample_list = np.hstack([np.array(t2_samples_temp).reshape((-1, 1)),
+        #                          np.array(t1_samples_temp).reshape((-1, 1)),
+        #                          np.array(flair_samples_temp).reshape((-1, 1)),
+        #                          np.array(seg_samples_temp).reshape((-1, 1)),
+        #                          np.array(seg_slice_list_temp).reshape((-1, 1))
+        #                          ])
+
         sample_list = np.hstack([np.array(t2_samples_temp).reshape((-1, 1)),
                                  np.array(t1_samples_temp).reshape((-1, 1)),
                                  np.array(flair_samples_temp).reshape((-1, 1)),
@@ -259,10 +266,23 @@ class DataGenerator(keras.utils.Sequence):
 
             seg_slice = samples[4]
 
-            t2_img = np.load(self.t2_sample_main_path + '/' + t2_sample)
 
-            if len(t2_img.shape) > 2:
-                t2_img = t2_img[:, :, 0]
+            volume_name = seg_sample.split('_seg.nii.gz')[0]
+
+            seg_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + seg_sample)
+
+            seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
+
+            t2_sample = volume_name + '_t1ce.nii.gz'
+
+            t2_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t2_sample)
+
+            t2_img = t2_img_full.get_fdata()[:, :, int(seg_slice)]
+
+            # t2_img = np.load(self.t2_sample_main_path + '/' + t2_sample)
+            #
+            # if len(t2_img.shape) > 2:
+            #     t2_img = t2_img[:, :, 0]
 
             t2_img = (t2_img - t2_img.min()) / (t2_img.max() - t2_img.min()) * 255
 
@@ -270,7 +290,13 @@ class DataGenerator(keras.utils.Sequence):
 
 
             if t1_sample is not None:
-                t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
+                # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
+
+                t1_sample = volume_name + '_t1ce.nii.gz'
+
+                t1_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1_sample)
+
+                t1_img = t1_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(t1_img.shape) > 2:
                     t1_img = t1_img[:, :, 0]
@@ -279,8 +305,16 @@ class DataGenerator(keras.utils.Sequence):
             else:
                 t1_img = None
 
+
+
             if flair_sample is not None:
-                flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
+                # flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
+
+                flair_sample = volume_name + '_flair.nii.gz'
+
+                flair_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + flair_sample)
+
+                flair_img = flair_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(flair_img.shape) > 2:
                     flair_img = flair_img[:, :, 0]
@@ -290,25 +324,36 @@ class DataGenerator(keras.utils.Sequence):
                 flair_img = None
 
 
-            volume_name = seg_sample.split('_seg.nii.gz')[0]
+            # if t1_sample is not None:
+            #     # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
+            #
+            #     t1ce_sample = volume_name + '_t1ce.nii.gz'
+            #
+            #     t1ce_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1ce_sample)
+            #
+            #     t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
+            #
+            #     if len(t1_img.shape) > 2:
+            #         t1ce_img = t1ce_img[:, :, 0]
+            #
+            #     t1ce_img = (t1ce_img - t1ce_img.min()) / (t1ce_img.max() - t1ce_img.min()) * 255
+            # else:
+            #     t1ce_img = None
 
-            seg_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + seg_sample)
-
-            seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
 
 
-            t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
-                            mode='reflect', anti_aliasing=True)
-            seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
-                             mode='reflect', anti_aliasing=True)
-
-            if t1_sample is not None:
-                t1_img = resize(t1_img, output_shape=self.sample_size, order=3,
-                                mode='reflect', anti_aliasing=True)
-
-            if flair_sample is not None:
-                flair_img = resize(flair_img, output_shape=self.sample_size, order=3,
-                                   mode='reflect', anti_aliasing=True)
+            # t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
+            #                 mode='reflect', anti_aliasing=True)
+            # seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
+            #                  mode='reflect', anti_aliasing=True)
+            #
+            # if t1_sample is not None:
+            #     t1_img = resize(t1_img, output_shape=self.sample_size, order=3,
+            #                     mode='reflect', anti_aliasing=True)
+            #
+            # if flair_sample is not None:
+            #     flair_img = resize(flair_img, output_shape=self.sample_size, order=3,
+            #                        mode='reflect', anti_aliasing=True)
 
             if self.augment_data:
 
@@ -326,17 +371,18 @@ class DataGenerator(keras.utils.Sequence):
 
 
 
-            t2_img, t1_img, flair_img, seg_img = crop_images_centered_over_label(t2_img, t1_img, flair_img, seg_img,
-                                                                                 self.sample_size)
-
-            t2_img, t1_img, flair_img, seg_img = RandomAugmentation(t2_img=t2_img, seg_img=seg_img,
-                                                                    t1_img=t1_img, flair_img=flair_img,
-                                                                    sample_size=self.sample_size,
-                                                                    rotation=rot_ang, scaling=scale_factor,
-                                                                    translation=translate, shearing=shear)
+            # t2_img, t1_img, flair_img, seg_img = crop_images_centered_over_label(t2_img, t1_img, flair_img, seg_img,
+            #                                                                      self.sample_size)
+            #
+            # t2_img, t1_img, flair_img, seg_img = RandomAugmentation(t2_img=t2_img, seg_img=seg_img,
+            #                                                         t1_img=t1_img, flair_img=flair_img,
+            #                                                         sample_size=self.sample_size,
+            #                                                         rotation=rot_ang, scaling=scale_factor,
+            #                                                         translation=translate, shearing=shear)
 
             # Only care about tumour core (TC), no setting ET label to 0
             seg_img[seg_img == 2] = 0
+            # seg_img[seg_img == 1] = 0
 
             seg_img[seg_img > 1] = 1
 
@@ -355,6 +401,14 @@ class DataGenerator(keras.utils.Sequence):
 
                 else:
                     x_data = np.stack([x_data, flair_img], axis=-1)
+
+
+            # if t1_img is not None:
+            #
+            #     if len(x_data.shape) > 2:
+            #
+            #         t1ce_img = np.expand_dims(t1ce_img, axis=-1)
+            #         x_data = np.concatenate([x_data, t1ce_img], axis=-1)
 
 
             if (t1_img is None) and (flair_img is None):

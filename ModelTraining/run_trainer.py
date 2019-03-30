@@ -13,7 +13,9 @@ if __name__ == '__main__':
 
 
     # df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_rev2.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_ET.pickle')
+
+
 
     t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
     seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
@@ -35,6 +37,24 @@ if __name__ == '__main__':
     seg_filelist_val = df['seg_filename'].loc[df['train_val_test'] == 'val'].values
     seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
 
+    # df_shape = df.shape
+    #
+    # df_train = int(df_shape[0] * 0.7)
+    # df = df.sample(frac=1)
+    # t2_filelist_train = df['t2_filename'].iloc[:df_train].values
+    # t1_filelist_train = df['t1_filename'].iloc[:df_train].values
+    # flair_filelist_train = df['flair_filename'].iloc[:df_train].values
+    #
+    # t2_filelist_val = df['t2_filename'].iloc[df_train:].values
+    # t1_filelist_val = df['t1_filename'].iloc[df_train:].values
+    # flair_filelist_val = df['flair_filename'].iloc[df_train:].values
+    #
+    # seg_filelist_train = df['seg_filename'].iloc[:df_train].values
+    # seg_slice_train = df['slice_number'].iloc[:df_train].values
+    #
+    # seg_filelist_val = df['seg_filename'].iloc[df_train:].values
+    # seg_slice_val = df['slice_number'].iloc[df_train:].values
+
 
     # params_dictionary = dict(model_type=['UNet', 'IUNet', 'VNet', 'VGG', 'ResNet'],
     #                          Epochs=[100],
@@ -46,9 +66,9 @@ if __name__ == '__main__':
 
     params_dictionary = dict(model_type=['UNet'],
                              Epochs=[100],
-                             batch_size=[45],
+                             batch_size=[27],
                              augment_training=[False],
-                             with_fake=[False],
+                             with_fake=[True],
                              train_fraction=[1],
                              )
 
@@ -74,7 +94,7 @@ if __name__ == '__main__':
                       t1_file_path=t1_file_path,
                       flair_file_path=flair_file_path,
 
-                      sample_size=(256, 256),
+                      sample_size=(240, 240),
                       trainer_grid_search=params_dictionary,
                       multi_gpu=True,
                       relative_save_weight_peroid=5)
