@@ -244,8 +244,10 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
 
         if t1_img is not None:
             t1_data = ndi.interpolation.affine_transform(t1_data, transform_matrix, order=1)
+            t1_data = __ElasticTransformation(t1_data, alpha=720, sigma=24)
         if flair_img is not None:
             flair_data = ndi.interpolation.affine_transform(flair_data, transform_matrix, order=1)
+            flair_data = __ElasticTransformation(flair_data, alpha=720, sigma=24)
 
 
     if lr_flip_slice_prob:
