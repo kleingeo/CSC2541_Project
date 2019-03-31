@@ -74,7 +74,7 @@ def build_filename_keyword(model_param):
 
     keyword = (str(model_param[GS_Util.MODEL_TYPE()]) + '_' +
                train_frac + '_' +
-               str(model_param[GS_Util.WITH_FAKE()]) + '_' +
+               str(model_param[GS_Util.WITH_REAL_FAKE()]) + '_' +
                str(model_param[GS_Util.AUGMENT_TRAINING()])
                )
 

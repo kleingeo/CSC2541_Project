@@ -335,78 +335,87 @@ class Trainer():
 
             train_size = int(len(self.t2_img_filelist_train) * train_params[GS_Util.TRAIN_FRAC()])
 
-            if train_params[GS_Util.WITH_FAKE()]:
+            assert train_params[GS_Util.WITH_REAL_FAKE()] in [None, 'real', 'fake']
 
-                model_params['num_channels'] = 3
+            self.n_channels = 1
 
-                params_train_generator = {'sample_size': self.sample_size,
-                                          'batch_size': batch_size,
-                                          'n_channels': 3,
-                                          'shuffle': True,
-                                          'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+            if (self.t1_img_filelist_train is not None) and (train_params[GS_Util.WITH_REAL_FAKE()] is not None):
+                self.n_channels = self.n_channels + 1
 
-                params_val_generator = {'sample_size': self.sample_size,
-                                        'batch_size': batch_size,
-                                        'n_channels': 3,
-                                        'shuffle': False,
-                                        'augment_data': False}
+            if (self.flair_filelist_train is not None) and (train_params[GS_Util.WITH_REAL_FAKE()] is not None):
+                self.n_channels = self.n_channels + 1
+
+            model_params['num_channels'] = 4
 
 
-                training_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_train[:train_size],
-                    seg_sample=self.seg_filelist_train[:train_size],
-                    t2_sample_main_path=self.t2_file_path,
-                    seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_train[:train_size],
-                    t1_sample=self.t1_img_filelist_train[:train_size],
-                    flair_sample=self.flair_filelist_train[:train_size],
-                    t1_sample_main_path=self.t1_file_path,
-                    flair_sample_main_path=self.flair_file_path,
-                    **params_train_generator)
+            params_train_generator = {'sample_size': self.sample_size,
+                                      'batch_size': batch_size,
+                                      'shuffle': True,
+                                      'real_or_fake': train_params[GS_Util.WITH_REAL_FAKE()],
+                                      'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
 
-                validation_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_val,
-                    seg_sample=self.seg_filelist_val,
-                    t2_sample_main_path=self.t2_file_path,
-                    seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_val,
-                    t1_sample=self.t1_img_filelist_val,
-                    flair_sample=self.flair_img_filelist_val,
-                    t1_sample_main_path=self.t1_file_path,
-                    flair_sample_main_path=self.flair_file_path,
-                    **params_val_generator)
+            params_val_generator = {'sample_size': self.sample_size,
+                                    'batch_size': batch_size,
+                                    'shuffle': False,
+                                    'real_or_fake': train_params[GS_Util.WITH_REAL_FAKE()],
+                                    'augment_data': False}
 
-            else:
 
-                model_params['num_channels'] = 1
+            training_generator = DataGenerator(
+                t2_sample=self.t2_img_filelist_train[:train_size],
+                seg_sample=self.seg_filelist_train[:train_size],
+                t2_sample_main_path=self.t2_file_path,
+                seg_sample_main_paths=self.seg_file_path,
+                seg_slice_list=self.seg_slice_train[:train_size],
+                t1_sample=self.t1_img_filelist_train[:train_size],
+                flair_sample=self.flair_filelist_train[:train_size],
+                t1_sample_main_path=self.t1_file_path,
+                flair_sample_main_path=self.flair_file_path,
+                **params_train_generator)
 
-                params_train_generator = {'sample_size': self.sample_size,
-                                          'batch_size': batch_size,
-                                          'n_channels': 1,
-                                          'shuffle': True,
-                                          'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+            validation_generator = DataGenerator(
+                t2_sample=self.t2_img_filelist_val,
+                seg_sample=self.seg_filelist_val,
+                t2_sample_main_path=self.t2_file_path,
+                seg_sample_main_paths=self.seg_file_path,
+                seg_slice_list=self.seg_slice_val,
+                t1_sample=self.t1_img_filelist_val,
+                flair_sample=self.flair_img_filelist_val,
+                t1_sample_main_path=self.t1_file_path,
+                flair_sample_main_path=self.flair_file_path,
+                **params_val_generator)
 
-                params_val_generator = {'sample_size': self.sample_size,
-                                        'batch_size': batch_size,
-                                        'n_channels': 1,
-                                        'shuffle': False,
-                                        'augment_data': False}
-
-                training_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_train[:train_size],
-                    seg_sample=self.seg_filelist_train[:train_size],
-                    t2_sample_main_path=self.t2_file_path,
-                    seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_train[:train_size],
-                    **params_train_generator)
-
-                validation_generator = DataGenerator(
-                    t2_sample=self.t2_img_filelist_val,
-                    seg_sample=self.seg_filelist_val,
-                    t2_sample_main_path=self.t2_file_path,
-                    seg_sample_main_paths=self.seg_file_path,
-                    seg_slice_list=self.seg_slice_val,
-                    **params_val_generator)
+            # else:
+            #
+            #     model_params['num_channels'] = 1
+            #
+            #     params_train_generator = {'sample_size': self.sample_size,
+            #                               'batch_size': batch_size,
+            #                               'n_channels': 1,
+            #                               'shuffle': True,
+            #                               'augment_data': train_params[GS_Util.AUGMENT_TRAINING()]}
+            #
+            #     params_val_generator = {'sample_size': self.sample_size,
+            #                             'batch_size': batch_size,
+            #                             'n_channels': 1,
+            #                             'shuffle': False,
+            #                             'augment_data': False}
+            #
+            #     training_generator = DataGenerator(
+            #         t2_sample=self.t2_img_filelist_train[:train_size],
+            #         seg_sample=self.seg_filelist_train[:train_size],
+            #         t2_sample_main_path=self.t2_file_path,
+            #         seg_sample_main_paths=self.seg_file_path,
+            #         seg_slice_list=self.seg_slice_train[:train_size],
+            #         **params_train_generator)
+            #
+            #     validation_generator = DataGenerator(
+            #         t2_sample=self.t2_img_filelist_val,
+            #         seg_sample=self.seg_filelist_val,
+            #         t2_sample_main_path=self.t2_file_path,
+            #         seg_sample_main_paths=self.seg_file_path,
+            #         seg_slice_list=self.seg_slice_val,
+            #         **params_val_generator)
 
 
             self.model = self.model_fn(**model_params)
@@ -458,7 +467,7 @@ class Trainer():
                 shuffle=True,
                 use_multiprocessing=True,
                 workers=30,
-                max_queue_size=30)
+                max_queue_size=150)
 
             self.model.save(self.model_weights_filename + '_' + str(epoch_size) + '_weights.h5')
 

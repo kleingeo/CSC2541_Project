@@ -117,7 +117,7 @@ class DataGenerator(keras.utils.Sequence):
     Generates data for Keras
     """
     def __init__(self, t2_sample, seg_sample, t2_sample_main_path, seg_sample_main_paths, seg_slice_list,
-                 batch_size=5, sample_size=(256, 256), n_channels=1, shuffle=False, augment_data=False,
+                 batch_size=5, sample_size=(256, 256), real_or_fake='real', shuffle=False, augment_data=False,
                  t1_sample=None, flair_sample=None,
                  t1_sample_main_path=None, flair_sample_main_path=None):
 
@@ -128,7 +128,7 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_size = batch_size
         self.seg_samples = seg_sample
         self.t2_samples = t2_sample
-        self.n_channels = n_channels
+
         self.shuffle = shuffle
 
         self.seg_slice_list = seg_slice_list
@@ -142,6 +142,19 @@ class DataGenerator(keras.utils.Sequence):
 
         self.t1_sample_main_path = t1_sample_main_path
         self.flair_sample_main_path = flair_sample_main_path
+
+        self.real_or_fake = real_or_fake
+
+
+        self.n_channels = 1
+
+        if (self.t1_samples is not None) and (self.real_or_fake is not None):
+            self.n_channels = self.n_channels + 1
+
+        if (self.flair_samples is not None) and (self.real_or_fake is not None):
+            self.n_channels = self.n_channels + 1
+
+        self.n_channels = 4
 
         self.on_epoch_end()
 
@@ -167,13 +180,12 @@ class DataGenerator(keras.utils.Sequence):
 
             seg_slice_list_temp = [self.seg_slice_list[k] for k in indexes]
 
-            if self.t1_samples is not None:
+            if (self.t1_samples is not None) and (self.real_or_fake is not None):
                 t1_samples_temp = [self.t1_samples[k] for k in indexes]
-
             else:
                 t1_samples_temp = [None for k in indexes]
 
-            if self.flair_samples is not None:
+            if (self.flair_samples is not None) and (self.real_or_fake is not None):
                 flair_samples_temp = [self.flair_samples[k] for k in indexes]
             else:
                 flair_samples_temp = [None for k in indexes]
@@ -185,13 +197,12 @@ class DataGenerator(keras.utils.Sequence):
 
             seg_slice_list_temp = [self.seg_slice_list[k] for k in indexes]
 
-            if self.t1_samples is not None:
+            if (self.t1_samples is not None) and (self.real_or_fake is not None):
                 t1_samples_temp = [self.t1_samples[k] for k in indexes]
-
             else:
                 t1_samples_temp = [None for k in indexes]
 
-            if self.flair_samples is not None:
+            if (self.flair_samples is not None) and (self.real_or_fake is not None):
                 flair_samples_temp = [self.flair_samples[k] for k in indexes]
             else:
                 flair_samples_temp = [None for k in indexes]
@@ -204,13 +215,13 @@ class DataGenerator(keras.utils.Sequence):
             seg_slice_list_temp = self.seg_slice_list
 
 
-            if self.t1_samples is not None:
+            if (self.t1_samples is not None) and (self.real_or_fake is not None):
                 t1_samples_temp = self.t1_samples
 
             else:
                 t1_samples_temp = None
 
-            if self.flair_samples is not None:
+            if (self.flair_samples is not None) and (self.real_or_fake is not None):
                 flair_samples_temp = self.flair_samples
             else:
                 flair_samples_temp = None
@@ -268,15 +279,11 @@ class DataGenerator(keras.utils.Sequence):
 
 
             volume_name = seg_sample.split('_seg.nii.gz')[0]
-
             seg_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + seg_sample)
-
             seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
 
-            t2_sample = volume_name + '_t1ce.nii.gz'
-
+            t2_sample = volume_name + '_t2.nii.gz'
             t2_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t2_sample)
-
             t2_img = t2_img_full.get_fdata()[:, :, int(seg_slice)]
 
             # t2_img = np.load(self.t2_sample_main_path + '/' + t2_sample)
@@ -287,34 +294,43 @@ class DataGenerator(keras.utils.Sequence):
             t2_img = (t2_img - t2_img.min()) / (t2_img.max() - t2_img.min()) * 255
 
 
-
+            # t1_sample = None
+            # flair_sample = None
+            t1ce_sample = True
 
             if t1_sample is not None:
-                # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
 
-                t1_sample = volume_name + '_t1ce.nii.gz'
+                if self.real_or_fake is 'fake':
 
-                t1_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1_sample)
+                    t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
 
-                t1_img = t1_img_full.get_fdata()[:, :, int(seg_slice)]
+                elif self.real_or_fake is 'real':
+
+                    t1_sample = volume_name + '_t1.nii.gz'
+                    t1_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1_sample)
+                    t1_img = t1_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(t1_img.shape) > 2:
                     t1_img = t1_img[:, :, 0]
 
                 t1_img = (t1_img - t1_img.min()) / (t1_img.max() - t1_img.min()) * 255
+
             else:
                 t1_img = None
 
 
 
             if flair_sample is not None:
-                # flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
 
-                flair_sample = volume_name + '_flair.nii.gz'
+                if self.real_or_fake is 'fake':
 
-                flair_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + flair_sample)
+                    flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
 
-                flair_img = flair_img_full.get_fdata()[:, :, int(seg_slice)]
+                elif self.real_or_fake is 'real':
+
+                    flair_sample = volume_name + '_flair.nii.gz'
+                    flair_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + flair_sample)
+                    flair_img = flair_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(flair_img.shape) > 2:
                     flair_img = flair_img[:, :, 0]
@@ -324,21 +340,19 @@ class DataGenerator(keras.utils.Sequence):
                 flair_img = None
 
 
-            # if t1_sample is not None:
-            #     # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
-            #
-            #     t1ce_sample = volume_name + '_t1ce.nii.gz'
-            #
-            #     t1ce_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1ce_sample)
-            #
-            #     t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
-            #
-            #     if len(t1_img.shape) > 2:
-            #         t1ce_img = t1ce_img[:, :, 0]
-            #
-            #     t1ce_img = (t1ce_img - t1ce_img.min()) / (t1ce_img.max() - t1ce_img.min()) * 255
-            # else:
-            #     t1ce_img = None
+            if t1ce_sample is not None:
+                # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
+
+                t1ce_sample = volume_name + '_t1ce.nii.gz'
+                t1ce_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1ce_sample)
+                t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
+
+                if len(t1_img.shape) > 2:
+                    t1ce_img = t1ce_img[:, :, 0]
+
+                t1ce_img = (t1ce_img - t1ce_img.min()) / (t1ce_img.max() - t1ce_img.min()) * 255
+            else:
+                t1ce_img = None
 
 
 
@@ -389,26 +403,20 @@ class DataGenerator(keras.utils.Sequence):
             x_data = t2_img
 
             if t1_img is not None:
-
                 x_data = np.stack([x_data, t1_img], axis=-1)
 
             if flair_img is not None:
-
                 if len(x_data.shape) > 2:
-
                     flair_img = np.expand_dims(flair_img, axis=-1)
                     x_data = np.concatenate([x_data, flair_img], axis=-1)
-
                 else:
                     x_data = np.stack([x_data, flair_img], axis=-1)
 
 
-            # if t1_img is not None:
-            #
-            #     if len(x_data.shape) > 2:
-            #
-            #         t1ce_img = np.expand_dims(t1ce_img, axis=-1)
-            #         x_data = np.concatenate([x_data, t1ce_img], axis=-1)
+            if t1ce_img is not None:
+                if len(x_data.shape) > 2:
+                    t1ce_img = np.expand_dims(t1ce_img, axis=-1)
+                    x_data = np.concatenate([x_data, t1ce_img], axis=-1)
 
 
             if (t1_img is None) and (flair_img is None):

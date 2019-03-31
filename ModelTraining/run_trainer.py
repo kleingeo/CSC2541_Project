@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
 
     # df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_ET.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_TC.pickle')
 
 
 
@@ -66,9 +66,9 @@ if __name__ == '__main__':
 
     params_dictionary = dict(model_type=['UNet'],
                              Epochs=[100],
-                             batch_size=[27],
+                             batch_size=[15],
                              augment_training=[False],
-                             with_fake=[True],
+                             real_or_fake=['real'],
                              train_fraction=[1],
                              )
 

@@ -55,5 +55,5 @@ def MODEL_TYPE():
 def TRAIN_FRAC():
     return 'train_fraction'
 
-def WITH_FAKE():
-    return 'with_fake'
+def WITH_REAL_FAKE():
+    return 'real_or_fake'

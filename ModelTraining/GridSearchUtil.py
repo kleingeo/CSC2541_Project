@@ -46,7 +46,7 @@ class GridSearchUtil:
         from itertools import product
 
         default_dictionary = dict(model_type=self.get_model_type(),
-                                  with_fake=self.get_with_fake(),
+                                  real_or_fake=self.get_with_fake_or_fake(),
                                   train_faction=self.get_train_fraction(),
                                   epochs=self.get_epochs(),
                                   batch_size=self.get_batch_sizes(),
@@ -56,8 +56,8 @@ class GridSearchUtil:
         if Util.MODEL_TYPE() in params_dictionary.keys():
             default_dictionary[Util.MODEL_TYPE()] = params_dictionary[Util.MODEL_TYPE()]
 
-        if Util.WITH_FAKE() in params_dictionary.keys():
-            default_dictionary[Util.WITH_FAKE()] = params_dictionary[Util.WITH_FAKE()]
+        if Util.WITH_REAL_FAKE() in params_dictionary.keys():
+            default_dictionary[Util.WITH_REAL_FAKE()] = params_dictionary[Util.WITH_REAL_FAKE()]
 
         if Util.TRAIN_FRAC() in params_dictionary.keys():
             default_dictionary[Util.TRAIN_FRAC()] = params_dictionary[Util.TRAIN_FRAC()]
@@ -106,14 +106,14 @@ class GridSearchUtil:
 
 
     @staticmethod
-    def get_with_fake():
+    def get_with_fake_or_fake():
         """
         Determine if to use the fake data from the GAN during training.
 
         :return: list of available architectures
         """
-        with_fake = [False]
-        return with_fake
+        real_or_fake = [None]
+        return real_or_fake
 
     @staticmethod
     def get_epochs():
