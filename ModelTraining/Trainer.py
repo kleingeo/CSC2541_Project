@@ -15,7 +15,7 @@ from keras.callbacks import ModelCheckpoint, Callback
 import os
 import pandas as pd
 import keras
-import tensorflow as tf
+#import tensorflow as tf
 
 from ModelTraining.ModelSelectUtil import ModelSelectUtil
 from ModelTraining.ModelParamUtil import ModelParamUtil
@@ -31,8 +31,10 @@ from OtherModels.Utils import dice_loss, dice
 import ModelTraining.GridSearchUtil as grid_util
 import ModelTraining.GridSearch_Consts as GS_Util
 
-
-
+#Saliency map imports
+from vis.utils import utils
+from keras import activations
+from OtherModels.SaliencyMap import SaliencyMap
 
 
 
@@ -325,11 +327,17 @@ class Trainer():
 
             # load the model
 
-
             self.model_fn = ModelSelectUtil(train_params[GS_Util.MODEL_TYPE()])
 
-            model_params = ModelParamUtil(train_params[GS_Util.MODEL_TYPE()])
 
+            #Create saliency map
+            saliency = True
+            if saliency:
+                self.model_fn.layers[-1].activation = activations.linear
+                self.model_fn = utils.apply_modifications(self.model_fn)
+
+
+            model_params = ModelParamUtil(train_params[GS_Util.MODEL_TYPE()])
 
             model_params['img_shape'] = self.sample_size
 
@@ -482,3 +490,6 @@ class Trainer():
                 self.model_json_filename + ' is successfully saved.')
             self.logger.info(
                 self.training_history_filename + ' is successfully saved.')
+
+            if saliency:
+                SaliencyMap(self.model)

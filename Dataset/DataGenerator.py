@@ -2,7 +2,7 @@ import numpy as np
 import keras
 import nibabel as nib
 
-from skimage.transform import resize
+#from skimage.transform import resize
 
 from Dataset.RandomAugmentation import RandomAugmentation
 
