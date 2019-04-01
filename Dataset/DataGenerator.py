@@ -397,7 +397,7 @@ class DataGenerator(keras.utils.Sequence):
 
 
             # Only care about tumour core (TC), no setting ET label to 0
-            seg_img[seg_img == 2] = 0
+            # seg_img[seg_img == 2] = 0
             # seg_img[seg_img == 1] = 0
 
             seg_img[seg_img > 1] = 1

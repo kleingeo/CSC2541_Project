@@ -270,31 +270,30 @@ class DataGenerator(keras.utils.Sequence):
             flair_sample = samples[2]
             seg_sample = samples[3]
 
+            t1ce_sample = True
+
+            self.sample_path_t1ce = '/home/kleingeo/CSC2541/MICCAI_BraTS_2018_Data_Training/'
 
 
-            volume_name = seg_sample.split('_seg.nii.gz')[0]
+            volume_name_split = seg_sample.split('_seg.nii.gz')[0].split('_')
+
+            seg_slice = int(volume_name_split[-1])
+
+            volume_name = '_'.join(volume_name_split[0],
+                                   volume_name_split[1],
+                                   volume_name_split[2],
+                                   volume_name_split[3])
+
             seg_img = np.load(self.sample_path_main + '/' + seg_sample)
-            # seg_img = seg_img_full.get_fdata()[:, :, int(seg_slice)]
 
-            t2_sample = volume_name + '_t2.nii.gz'
-            t2_img = np.load(self.sample_path_main + '/' +  t2_sample)
-            # t2_img = t2_img_full.get_fdata()[:, :, int(seg_slice)]
+            t2_img = np.load(self.sample_path_main + '/' + t2_sample)
 
-            # t2_img = np.load(self.t2_sample_main_path + '/' + t2_sample)
-            #
-            # if len(t2_img.shape) > 2:
-            #     t2_img = t2_img[:, :, 0]
+            if len(t2_img.shape) > 2:
+                t2_img = t2_img[:, :, 0]
 
             t2_img = (t2_img - t2_img.min()) / (t2_img.max() - t2_img.min()) * 255
 
 
-            # t1_sample = None
-            # flair_sample = None
-            t1ce_sample = True
-
-            t1_img = None
-            t1ce_img = None
-            flair_img = None
 
             if t1_sample is not None:
 
@@ -323,34 +322,50 @@ class DataGenerator(keras.utils.Sequence):
                 flair_img = None
 
 
+            if t1ce_sample is not None:
+
+                t1ce_sample = volume_name + '_t1ce.nii.gz'
+                t1ce_img_full = nib.load(self.sample_path_t1ce + '/' + volume_name + '/' + t1ce_sample)
+                t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
+
+                if len(t1_img.shape) > 2:
+                    t1ce_img = t1ce_img[:, :, 0]
+
+                t1ce_img = (t1ce_img - t1ce_img.min()) / (t1ce_img.max() - t1ce_img.min()) * 255
+            else:
+                t1ce_img = None
+
+
+
             # if t1ce_sample is not None:
-            #     # t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
             #
-            #     t1ce_sample = volume_name + '_t1ce.nii.gz'
-            #     t1ce_img_full = nib.load(self.sample_path_main + '/' + volume_name + '/' + t1ce_sample)
-            #     t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
+            #     t1ce_img = np.load(self.sample_path_main + '/' + t1_sample)
             #
-            #     if len(t1_img.shape) > 2:
+            #     if len(t1ce_img.shape) > 2:
             #         t1ce_img = t1ce_img[:, :, 0]
             #
             #     t1ce_img = (t1ce_img - t1ce_img.min()) / (t1ce_img.max() - t1ce_img.min()) * 255
+            #
             # else:
             #     t1ce_img = None
 
-            t1ce_img = None
 
-            # t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
-            #                 mode='reflect', anti_aliasing=True)
-            # seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
-            #                  mode='reflect', anti_aliasing=True)
-            #
-            # if t1_sample is not None:
-            #     t1_img = resize(t1_img, output_shape=self.sample_size, order=3,
-            #                     mode='reflect', anti_aliasing=True)
-            #
-            # if flair_sample is not None:
-            #     flair_img = resize(flair_img, output_shape=self.sample_size, order=3,
-            #                        mode='reflect', anti_aliasing=True)
+            t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
+                            mode='reflect', anti_aliasing=True)
+            seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
+                             mode='reflect', anti_aliasing=True)
+
+            if t1_sample is not None:
+                t1_img = resize(t1_img, output_shape=self.sample_size, order=3,
+                                mode='reflect', anti_aliasing=True)
+
+            if t1ce_sample is not None:
+                t1ce_img = resize(t1ce_img, output_shape=self.sample_size, order=3,
+                                  mode='reflect', anti_aliasing=True)
+
+            if flair_sample is not None:
+                flair_img = resize(flair_img, output_shape=self.sample_size, order=3,
+                                   mode='reflect', anti_aliasing=True)
 
             if self.augment_data:
 
@@ -394,10 +409,10 @@ class DataGenerator(keras.utils.Sequence):
                     x_data = np.stack([x_data, flair_img], axis=-1)
 
 
-            # if t1ce_img is not None:
-            #     if len(x_data.shape) > 2:
-            #         t1ce_img = np.expand_dims(t1ce_img, axis=-1)
-            #         x_data = np.concatenate([x_data, t1ce_img], axis=-1)
+            if t1ce_img is not None:
+                if len(x_data.shape) > 2:
+                    t1ce_img = np.expand_dims(t1ce_img, axis=-1)
+                    x_data = np.concatenate([x_data, t1ce_img], axis=-1)
 
 
             if (t1_img is None) and (flair_img is None):

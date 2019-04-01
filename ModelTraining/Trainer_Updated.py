@@ -22,7 +22,7 @@ from ModelTraining.ModelParamUtil import ModelParamUtil
 import ModelTraining.TrainerFileNamesUtil as TrainerFileNamesUtil
 
 from keras.utils import multi_gpu_model
-from Dataset.DataGenerator import DataGenerator
+from Dataset.DataGenerator_updated_dataframe import DataGenerator
 
 
 from OtherModels.Utils import dice_loss, dice
@@ -99,18 +99,13 @@ class Trainer():
                  output_directory,
                  t2_img_filelist_train,
                  seg_filelist_train,
-                 seg_slice_train,
                  t2_img_filelist_val,
                  seg_filelist_val,
-                 seg_slice_val,
-                 t2_file_path,
-                 seg_file_path,
+                 sample_path_main,
                  t1_img_filelist_train=None,
                  flair_img_filelist_train=None,
                  t1_img_filelist_val=None,
                  flair_img_filelist_val=None,
-                 t1_file_path=None,
-                 flair_file_path=None,
                  batch_size=5,
                  sample_size=(256, 256),
                  shuffle=True,
@@ -128,22 +123,18 @@ class Trainer():
 
         self.t2_img_filelist_train = t2_img_filelist_train
         self.t2_img_filelist_val = t2_img_filelist_val
-        self.t2_file_path = t2_file_path
 
         self.seg_filelist_train = seg_filelist_train
         self.seg_filelist_val = seg_filelist_val
-        self.seg_slice_train = seg_slice_train
-        self.seg_slice_val = seg_slice_val
-        self.seg_file_path = seg_file_path
 
+        self.sample_path_main = sample_path_main
 
         self.t1_img_filelist_train = t1_img_filelist_train
         self.t1_img_filelist_val = t1_img_filelist_val
-        self.t1_file_path = t1_file_path
+
 
         self.flair_filelist_train = flair_img_filelist_train
         self.flair_img_filelist_val = flair_img_filelist_val
-        self.flair_file_path = flair_file_path
 
 
         self.sample_size = sample_size
@@ -364,25 +355,17 @@ class Trainer():
             training_generator = DataGenerator(
                 t2_sample=self.t2_img_filelist_train[:train_size],
                 seg_sample=self.seg_filelist_train[:train_size],
-                t2_sample_main_path=self.t2_file_path,
-                seg_sample_main_paths=self.seg_file_path,
-                seg_slice_list=self.seg_slice_train[:train_size],
+                sample_path_main=self.sample_path_main,
                 t1_sample=self.t1_img_filelist_train[:train_size],
                 flair_sample=self.flair_filelist_train[:train_size],
-                t1_sample_main_path=self.t1_file_path,
-                flair_sample_main_path=self.flair_file_path,
                 **params_train_generator)
 
             validation_generator = DataGenerator(
                 t2_sample=self.t2_img_filelist_val,
                 seg_sample=self.seg_filelist_val,
-                t2_sample_main_path=self.t2_file_path,
-                seg_sample_main_paths=self.seg_file_path,
-                seg_slice_list=self.seg_slice_val,
+                sample_path_main=self.sample_path_main,
                 t1_sample=self.t1_img_filelist_val,
                 flair_sample=self.flair_img_filelist_val,
-                t1_sample_main_path=self.t1_file_path,
-                flair_sample_main_path=self.flair_file_path,
                 **params_val_generator)
 
             # else:

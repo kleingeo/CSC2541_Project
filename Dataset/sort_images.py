@@ -103,21 +103,24 @@ def sort_images(image_path_t2_t1, image_path_t2_flair, seg_path_main, destinatio
 
 if __name__ == '__main__':
 
-    image_path_t2_t1 = 'D:/BRATS18/T2_Flair'
+    # image_path_t2_t1 = 'D:/Geoff_Klein/BRATS18/T2_Flair'
+    #
+    # image_path_t2_flair = 'D:/Geoff_Klein/BRATS18/T2_T1'
+    #
+    # seg_path_main = 'D:/Geoff_Klein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
+    #
+    # destination = 'D:/Geoff_Klein/BRATS18/Synthetic_Images2'
+    #
+    # df = sort_images(image_path_t2_t1, image_path_t2_flair, seg_path_main, destination)
+    #
+    # df.to_csv('seg_slice_dataframe_complete.csv', index=False)
+    # df.to_pickle('seg_slice_dataframe_complete.pickle')
 
-    image_path_t2_flair = 'D:/BRATS18/T2_T1'
-
-    seg_path_main = 'D:/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
-
-    destination = 'D:/BRATS18/Synthetic_Images'
-
-    df = sort_images(image_path_t2_t1, image_path_t2_flair, seg_path_main, destination)
-
-    df.to_csv('seg_slice_dataframe_complete.csv', index=False)
-    df.to_pickle('seg_slice_dataframe_complete.pickle')
+    df = pd.read_pickle('seg_slice_dataframe_complete.pickle')
 
     df_TC = df.loc[(df['NRC_1'] == True) &
-                   (df['ET_4'] == True)]
+                   (df['ET_4'] == True) &
+                   (df['ED_2'] == True)]
 
 
 
@@ -163,5 +166,5 @@ if __name__ == '__main__':
         df_TC['train_val_test'].loc[df_TC['volume_name'] == volume_name] = train_val_test
 
 
-    df_TC.to_csv('seg_slice_dataframe_complete_TC.csv', index=False)
-    df_TC.to_pickle('seg_slice_dataframe_complete_TC.pickle')
+    df_TC.to_csv('seg_slice_dataframe_complete_WT.csv', index=False)
+    df_TC.to_pickle('seg_slice_dataframe_complete_WT.pickle')

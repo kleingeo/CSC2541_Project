@@ -3,24 +3,32 @@ import sys
 sys.path.append('..')
 
 
+import numpy as np
+import tensorflow as tf
+
+np.random.seed(25)
+tf.random.set_random_seed(25)
 
 from ModelTraining.Trainer import Trainer
 import pandas as pd
 
-
 if __name__ == '__main__':
 
-
-
     # df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_TC.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_WT.pickle')
 
 
 
-    t2_file_path = 'D:/BRATS18/T2_T1'
-    seg_file_path = 'D:/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
-    t1_file_path = 'D:/BRATS18/T2_T1'
-    flair_file_path = 'D:/BRATS18/T2_Flair'
+    # t2_file_path = 'D:/Geoff_Klein/BRATS18/T2_T1'
+    # seg_file_path = 'D:/Geoff_Klein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
+    # t1_file_path = 'D:/Geoff_Klein/BRATS18/T2_T1'
+    # flair_file_path = 'D:/Geoff_Klein/BRATS18/T2_Flair'
+
+    t2_file_path = 'localdisk1/GeoffKlein/BRATS18/T2_T1'
+    seg_file_path = '/localdisk1/GeoffKlein/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
+    t1_file_path = '/localdisk1/GeoffKlein/BRATS18/T2_T1'
+    flair_file_path = '/localdisk1/GeoffKlein/BRATS18/T2_Flair'
+
 
 
     t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values

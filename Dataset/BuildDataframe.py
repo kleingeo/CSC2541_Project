@@ -35,7 +35,7 @@ def build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main):
 
         seg_data = seg_img.get_fdata()[:, :, slice_number]
 
-        seg_data[seg_data == 2] = 0
+        # seg_data[seg_data == 2] = 0
         seg_data[seg_data > 1] = 1
 
         # Ignore slices of both the image and label that are only zero
@@ -126,8 +126,8 @@ if __name__ == '__main__':
 
     df = build_dataframe(image_path_t2_t1, image_path_t2_flair, seg_path_main)
 
-    df.to_csv('seg_slice_dataframe_shuffled_TC.csv', index=False)
-    df.to_pickle('seg_slice_dataframe_shuffled_TC.pickle')
+    df.to_csv('seg_slice_dataframe_shuffled_WT.csv', index=False)
+    df.to_pickle('seg_slice_dataframe_shuffled_WT.pickle')
 
     # df = pd.read_pickle('seg_slice_dataframe.pickle')
     #

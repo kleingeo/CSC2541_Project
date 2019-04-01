@@ -1,2 +1,0 @@
-,augment_training,batch_size,epochs,model_type,real_or_fake,train_fraction
-0,True,5,100,UNet,real,1
