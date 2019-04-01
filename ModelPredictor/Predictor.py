@@ -219,40 +219,74 @@ class Predictor:
 
         seg_file_path = self.main_sample_directory['seg']
 
-        if self.num_channels == 3:
+        # self.n_channels = 1
+        #
+        # if (self.t1_img_test is not None) and (train_params[GS_Util.WITH_REAL_FAKE()] is not None):
+        #     self.n_channels = self.n_channels + 1
+        #
+        # if (self.flair_filelist_train is not None) and (train_params[GS_Util.WITH_REAL_FAKE()] is not None):
+        #     self.n_channels = self.n_channels + 1
+        #
+        # model_params['num_channels'] = 4
 
-            params_test_gen = {'sample_size': self.sample_size,
-                               'batch_size': 1,
-                               'n_channels': self.num_channels,
-                               'shuffle': False,
-                               'augment_data': False}
 
-            test_gen = DataGenerator(
-                t2_sample=t2_img_test,
-                seg_sample=seg_img_test,
-                t2_sample_main_path=t2_file_path,
-                seg_sample_main_paths=seg_file_path,
-                seg_slice_list=seg_slice,
-                t1_sample=t1_img_test,
-                flair_sample=flair_img_test,
-                t1_sample_main_path=t1_file_path,
-                flair_sample_main_path=flair_file_path,
-                **params_test_gen)
 
-        if self.num_channels == 1:
-            params_test_gen = {'sample_size': self.sample_size,
-                               'batch_size': 1,
-                               'n_channels': self.num_channels,
-                               'shuffle': False,
-                               'augment_data': False}
+        params_test_gen = {'sample_size': self.sample_size,
+                           'batch_size': 1,
+                           'shuffle': False,
+                           'real_or_fake': 'real',
+                           'augment_data': False}
 
-            test_gen = DataGenerator(
-                t2_sample=t2_img_test,
-                seg_sample=seg_img_test,
-                t2_sample_main_path=t2_file_path,
-                seg_sample_main_paths=seg_file_path,
-                seg_slice_list=seg_slice,
-                **params_test_gen)
+
+
+        test_gen = DataGenerator(
+            t2_sample=t2_img_test,
+            seg_sample=seg_img_test,
+            t2_sample_main_path=t2_file_path,
+            seg_sample_main_paths=seg_file_path,
+            seg_slice_list=seg_slice,
+            t1_sample=t1_img_test,
+            flair_sample=flair_img_test,
+            t1_sample_main_path=t1_file_path,
+            flair_sample_main_path=t1_file_path,
+            **params_test_gen)
+
+        # if self.num_channels == 3:
+        #
+        #     params_test_gen = {'sample_size': self.sample_size,
+        #                        'batch_size': 1,
+        #                        'n_channels': self.num_channels,
+        #                        'shuffle': False,
+        #                        'augment_data': False}
+        #
+        #     test_gen = DataGenerator(
+        #         t2_sample=t2_img_test,
+        #         seg_sample=seg_img_test,
+        #         t2_sample_main_path=t2_file_path,
+        #         seg_sample_main_paths=seg_file_path,
+        #         seg_slice_list=seg_slice,
+        #         t1_sample=t1_img_test,
+        #         flair_sample=flair_img_test,
+        #         t1_sample_main_path=t1_file_path,
+        #         flair_sample_main_path=flair_file_path,
+        #         **params_test_gen)
+        #
+        # if self.num_channels == 1:
+        #     params_test_gen = {'sample_size': self.sample_size,
+        #                        'batch_size': 1,
+        #                        'n_channels': self.num_channels,
+        #                        'shuffle': False,
+        #                        'augment_data': False}
+        #
+        #     test_gen = DataGenerator(
+        #         t2_sample=t2_img_test,
+        #         seg_sample=seg_img_test,
+        #         t2_sample_main_path=t2_file_path,
+        #         seg_sample_main_paths=seg_file_path,
+        #         seg_slice_list=seg_slice,
+        #         **params_test_gen)
+
+        self.num_channels = 3
 
         for idx in range(len(t2_img_test)):
 

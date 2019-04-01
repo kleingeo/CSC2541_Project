@@ -4,7 +4,7 @@ import os
 
 if __name__ == '__main__':
 
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_shuffled_TC.pickle')
 
     t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
     seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
@@ -28,16 +28,16 @@ if __name__ == '__main__':
 
     df_total_eval_dsc = None
 
-    top_output_directory = '../TrainOutput'
+    top_output_directory = '../TrainOutput_test'
 
-    time_stamp = '2019-03-27-15-51'
+    time_stamp = '2019-03-31-00-55'
 
 
 
     for idx, dir in enumerate(os.listdir(top_output_directory + '/' + time_stamp)):
 
 
-        if (dir != 'UNet_1_False_True'):
+        if (dir != 'UNet_1_real_False'):
             continue
 
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
                 continue
 
-            if weights.endswith('100_weights.h5') is False:
+            if weights.endswith('60_weights.h5') is False:
                 continue
 
             model_weights_filename = weights_folder_path + '/' + weights
