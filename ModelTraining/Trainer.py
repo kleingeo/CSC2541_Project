@@ -465,9 +465,9 @@ class Trainer():
                 validation_steps=int(len(self.t2_img_filelist_val) / batch_size),
                 verbose=1,
                 shuffle=True,
-                use_multiprocessing=True,
-                workers=30,
-                max_queue_size=150)
+                use_multiprocessing=False,
+                workers=1,
+                max_queue_size=100)
 
             self.model.save(self.model_weights_filename + '_' + str(epoch_size) + '_weights.h5')
 

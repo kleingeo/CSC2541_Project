@@ -17,10 +17,10 @@ if __name__ == '__main__':
 
 
 
-    t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
-    seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
-    t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
-    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
+    t2_file_path = 'D:/BRATS18/T2_T1'
+    seg_file_path = 'D:/BRATS18/MICCAI_BraTS_2018_Data_Training/HGG'
+    t1_file_path = 'D:/BRATS18/T2_T1'
+    flair_file_path = 'D:/BRATS18/T2_Flair'
 
 
     t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 
                       sample_size=(240, 240),
                       trainer_grid_search=params_dictionary,
-                      multi_gpu=True,
+                      multi_gpu=False,
                       relative_save_weight_peroid=5)
 
 
