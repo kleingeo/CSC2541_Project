@@ -298,13 +298,17 @@ class DataGenerator(keras.utils.Sequence):
             # flair_sample = None
             t1ce_sample = True
 
+            t1_img = None
+            t1ce_img = None
+            flair_img = None
+
             if t1_sample is not None:
 
-                if self.real_or_fake is 'fake':
+                if self.real_or_fake == 'fake':
 
                     t1_img = np.load(self.t1_sample_main_path + '/' + t1_sample)
 
-                elif self.real_or_fake is 'real':
+                elif self.real_or_fake == 'real':
 
                     t1_sample = volume_name + '_t1.nii.gz'
                     t1_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + t1_sample)
@@ -322,11 +326,11 @@ class DataGenerator(keras.utils.Sequence):
 
             if flair_sample is not None:
 
-                if self.real_or_fake is 'fake':
+                if self.real_or_fake == 'fake':
 
                     flair_img = np.load(self.flair_sample_main_path + '/' + flair_sample)
 
-                elif self.real_or_fake is 'real':
+                elif self.real_or_fake == 'real':
 
                     flair_sample = volume_name + '_flair.nii.gz'
                     flair_img_full = nib.load(self.seg_sample_main_paths + '/' + volume_name + '/' + flair_sample)
@@ -375,24 +379,22 @@ class DataGenerator(keras.utils.Sequence):
                 shear = (np.deg2rad(10))
                 translate = True
                 scale_factor = [0.8, 1.2]
+                elastic = True
 
 
-            else:
-                rot_ang = None
-                shear = None
-                translate = None
-                scale_factor = None
+                t2_img, t1_img, t1ce_img, flair_img, seg_img = RandomAugmentation(
+                    t2_img=t2_img, seg_img=seg_img,
+                    t1_img=t1_img, t1ce_img=t1ce_img, flair_img=flair_img,
+                    sample_size=self.sample_size,
+                    rotation=rot_ang, scaling=scale_factor,
+                    translation=translate, shearing=shear, elastic=elastic)
 
 
 
             # t2_img, t1_img, flair_img, seg_img = crop_images_centered_over_label(t2_img, t1_img, flair_img, seg_img,
             #                                                                      self.sample_size)
             #
-            # t2_img, t1_img, flair_img, seg_img = RandomAugmentation(t2_img=t2_img, seg_img=seg_img,
-            #                                                         t1_img=t1_img, flair_img=flair_img,
-            #                                                         sample_size=self.sample_size,
-            #                                                         rotation=rot_ang, scaling=scale_factor,
-            #                                                         translation=translate, shearing=shear)
+
 
             # Only care about tumour core (TC), no setting ET label to 0
             seg_img[seg_img == 2] = 0

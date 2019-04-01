@@ -47,7 +47,7 @@ class GridSearchUtil:
 
         default_dictionary = dict(model_type=self.get_model_type(),
                                   real_or_fake=self.get_with_fake_or_fake(),
-                                  train_faction=self.get_train_fraction(),
+                                  train_fraction=self.get_train_fraction(),
                                   epochs=self.get_epochs(),
                                   batch_size=self.get_batch_sizes(),
                                   augment_training=self.get_augment_training(),

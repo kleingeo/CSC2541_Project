@@ -67,7 +67,7 @@ def random_shear(shearing):
     return shear_mat
 
 
-def determine_operations(rescaling, translation, rotation, sheering,
+def determine_operations(rescaling, translation, rotation, sheering, elastic,
                          lr_flip_slice, ud_flip_slice):
 
     if rescaling is not None:
@@ -94,6 +94,11 @@ def determine_operations(rescaling, translation, rotation, sheering,
     else:
         sheering = 0
 
+    if elastic is not None:
+        elastic = np.random.random_integers(0, 1)
+    else:
+        elastic = 0
+
 
     if lr_flip_slice is not False:
         lr_flip_slice = np.random.random_integers(0, 1)
@@ -107,11 +112,11 @@ def determine_operations(rescaling, translation, rotation, sheering,
         ud_flip_slice = 0
 
 
-    return (rescaling, translation, rotation, sheering,
+    return (rescaling, translation, rotation, sheering, elastic,
             lr_flip_slice, ud_flip_slice)
 
 
-def __ElasticTransformation(image, alpha, sigma, random_state=None):
+def elastic_transform(image, alpha, sigma, order, random_state=None):
     '''
     Elastic deformation of images as described in [Simard2003]_.
     .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
@@ -137,11 +142,11 @@ def __ElasticTransformation(image, alpha, sigma, random_state=None):
     x, y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing='ij')
     indices = np.reshape(x + dx, (-1, 1)), np.reshape(y + dy, (-1, 1))
 
-    return map_coordinates(image, indices, order=1).reshape(shape)
+    return map_coordinates(image, indices, order=order).reshape(shape)
 
 
-def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size=(256, 256),
-                       scaling=None, translation=None, rotation=None, shearing=None,
+def RandomAugmentation(t2_img, seg_img, t1_img=None, t1ce_img=None, flair_img=None, sample_size=(256, 256),
+                       scaling=None, translation=None, rotation=None, shearing=None, elastic=None,
                        lr_flip_slice=False, ud_flip_slice=False):
 
     """
@@ -178,8 +183,8 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
 
 
 
-    (scaling_prob, translation_prob, rotation_prob, shearing_prob,
-     lr_flip_slice_prob, ud_flip_slice_prob) = determine_operations(scaling, translation, rotation, shearing,
+    (scaling_prob, translation_prob, rotation_prob, shearing_prob, elastic_prob,
+     lr_flip_slice_prob, ud_flip_slice_prob) = determine_operations(scaling, translation, rotation, shearing, elastic,
                                                                     lr_flip_slice, ud_flip_slice)
 
     t2_data = t2_img
@@ -189,6 +194,11 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
         t1_data = t1_img
     else:
         t1_data = None
+
+    if t1ce_img is not None:
+        t1ce_data = t1ce_img
+    else:
+        t1ce_data = None
 
     if flair_img is not None:
         flair_data = flair_img
@@ -239,16 +249,30 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
         t2_data = ndi.interpolation.affine_transform(t2_data, transform_matrix, order=1)
         seg_data = ndi.interpolation.affine_transform(seg_data, transform_matrix, order=0)
 
-        t2_data = __ElasticTransformation(t2_data, alpha=720, sigma=24)
-        seg_data = __ElasticTransformation(seg_data, alpha=720, sigma=24)
+        t2_data = elastic_transform(t2_data, alpha=720, sigma=24, order=1)
+        seg_data = elastic_transform(seg_data, alpha=720, sigma=24, order=0)
 
         if t1_img is not None:
             t1_data = ndi.interpolation.affine_transform(t1_data, transform_matrix, order=1)
-            t1_data = __ElasticTransformation(t1_data, alpha=720, sigma=24)
+            t1_data = elastic_transform(t1_data, alpha=720, sigma=24, order=1)
+        if t1ce_img is not None:
+            t1ce_data = ndi.interpolation.affine_transform(t1ce_data, transform_matrix, order=1)
+            t1ce_data = elastic_transform(t1ce_data, alpha=720, sigma=24, order=1)
         if flair_img is not None:
             flair_data = ndi.interpolation.affine_transform(flair_data, transform_matrix, order=1)
-            flair_data = __ElasticTransformation(flair_data, alpha=720, sigma=24)
+            flair_data = elastic_transform(flair_data, alpha=720, sigma=24, order=1)
 
+
+        if elastic_prob:
+            t2_data = elastic_transform(t2_data, alpha=720, sigma=24, order=1)
+            seg_data = elastic_transform(seg_data, alpha=720, sigma=24, order=0)
+
+            if t1_img is not None:
+                t1_data = elastic_transform(t1_data, alpha=720, sigma=24, order=1)
+            if t1ce_img is not None:
+                t1ce_data = elastic_transform(t1ce_data, alpha=720, sigma=24, order=1)
+            if flair_img is not None:
+                flair_data = elastic_transform(flair_data, alpha=720, sigma=24, order=1)
 
     if lr_flip_slice_prob:
         t2_data = t2_data[::-1, :]
@@ -256,6 +280,8 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
 
         if t1_img is not None:
             t1_data = t1_data[::-1, :]
+        if t1ce_img is not None:
+            t1ce_data = t1_data[::-1, :]
         if flair_img is not None:
             flair_data = flair_data[::-1, :]
 
@@ -265,6 +291,8 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
 
         if t1_img is not None:
             t1_data = t1_data[:, ::-1]
+        if t1ce_img is not None:
+            t1ce_data = t1ce_data[:, ::-1]
         if flair_img is not None:
             flair_data = flair_data[:, ::-1]
 
@@ -272,11 +300,14 @@ def RandomAugmentation(t2_img, seg_img, t1_img=None, flair_img=None, sample_size
     seg_data = seg_data.astype(np.uint8)
 
     if t1_img is not None:
-        t1_data = t1_data.astype(np.uint8)
+        t1_data = t1_data.astype(np.float32)
+
+    if t1ce_img is not None:
+        t1ce_data = t1ce_data.astype(np.float32)
 
     if flair_img is not None:
-        flair_data = flair_data.astype(np.uint8)
+        flair_data = flair_data.astype(np.float32)
 
 
-    return t2_data, t1_data, flair_data, seg_data
+    return t2_data, t1_data, t1ce_data, flair_data, seg_data
 
