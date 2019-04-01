@@ -67,7 +67,7 @@ if __name__ == '__main__':
     params_dictionary = dict(model_type=['UNet'],
                              Epochs=[100],
                              batch_size=[15],
-                             augment_training=[False],
+                             augment_training=[True],
                              real_or_fake=['real'],
                              train_fraction=[1],
                              )

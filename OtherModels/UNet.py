@@ -8,6 +8,7 @@ given parameters.
 from keras.layers import Input, MaxPooling2D, Conv2D, BatchNormalization, \
     Activation, Deconvolution2D, UpSampling2D, concatenate, Dropout
 from keras.models import Model
+import keras
 from keras import backend as K
 K.set_image_dim_ordering('tf')
 
@@ -23,7 +24,8 @@ def get_unet(img_shape = (512, 512),
              deconvolution = False,
              dropout = 0,
              num_classes = 1,
-             num_channels = 1):
+             num_channels = 1,
+             reg_const=None):
 
 
     model_inputs = Input((img_shape + (num_channels,)))
@@ -34,19 +36,34 @@ def get_unet(img_shape = (512, 512),
     current_layer = model_inputs
     levels = list()
 
+    if reg_const is not None:
+
+        kernel_reg = keras.regularizers.l2(reg_const)
+        bias_reg = keras.regularizers.l2(reg_const)
+
+    else:
+        kernel_reg = None
+        bias_reg = None
+
     ### create Downsampling Arm
     for layer_depth in range(depth):
         layer1 = create_convolution_block(
             input_layer=current_layer,
             n_filters=base_filter * (2 ** layer_depth),
-            batch_normalization=batch_normalization)
+            kernel_reg=kernel_reg,
+            bias_reg=bias_reg,
+            batch_normalization=batch_normalization,
+            dilation_rate=dilation_rate,
+            kernel_initializer=kernel_initializer)
+
         layer2 = create_convolution_block(
             input_layer=layer1,
             n_filters=base_filter * (2 ** layer_depth),
+            kernel_reg=kernel_reg,
+            bias_reg=bias_reg,
             batch_normalization=batch_normalization,
             dilation_rate=dilation_rate,
-            kernel_initializer=kernel_initializer
-        )
+            kernel_initializer=kernel_initializer)
 
         if layer_depth < depth - 1:
             current_layer = MaxPooling2D(pool_size=pool_size)(layer2)
@@ -57,10 +74,18 @@ def get_unet(img_shape = (512, 512),
 
      ### create Upsample Arm
     for layer_depth in range(depth - 2, -1, -1):
+
         up_convolution = get_up_convolution(
-            pool_size=pool_1d_size,
+            input=current_layer,
+            pool_size=pool_size,
             deconvolution=deconvolution,
-            n_filters=current_layer._keras_shape[1])(current_layer)
+            n_filters=current_layer._keras_shape[1],
+            kernel_reg=kernel_reg, bias_reg=bias_reg)
+
+        # up_convolution = get_up_convolution(
+        #     pool_size=pool_1d_size,
+        #     deconvolution=deconvolution,
+        #     n_filters=current_layer._keras_shape[1])(current_layer)
 
         concat = concatenate([up_convolution, levels[layer_depth][1]], axis=-1)
 
@@ -68,24 +93,29 @@ def get_unet(img_shape = (512, 512),
             concat = Dropout(dropout)(concat)
 
         current_layer = create_convolution_block(
-            n_filters=levels[layer_depth][1]._keras_shape[1],
             input_layer=concat,
+            n_filters=levels[layer_depth][1]._keras_shape[1],
+            kernel_reg=kernel_reg,
+            bias_reg=bias_reg,
             batch_normalization=batch_normalization,
             kernel=kernel_size,
             dilation_rate=dilation_rate,
             kernel_initializer=kernel_initializer)
 
         current_layer = create_convolution_block(
-            n_filters=levels[layer_depth][1]._keras_shape[1],
             input_layer=current_layer,
+            n_filters=levels[layer_depth][1]._keras_shape[1],
+            kernel_reg=kernel_reg,
+            bias_reg=bias_reg,
             batch_normalization=batch_normalization,
             kernel=kernel_size,
-            kernel_initializer=kernel_initializer,
-            dilation_rate=dilation_rate)
+            dilation_rate=dilation_rate,
+            kernel_initializer=kernel_initializer)
 
     ### Finish off the Output and Optimize
     n_labels = num_classes
-    final_convolution = Conv2D(n_labels, (1, 1))(current_layer)
+    final_convolution = Conv2D(n_labels, (1, 1),
+                               kernel_regularizer=kernel_reg, bias_regularizer=bias_reg)(current_layer)
     act = Activation("sigmoid")(final_convolution)
     model = Model(inputs=model_inputs, outputs=act)
 
@@ -97,7 +127,9 @@ def get_unet(img_shape = (512, 512),
 def create_convolution_block(input_layer,
                              n_filters,
                              batch_normalization=False,
-                             kernel=( 3, 3),
+                             kernel_reg=None,
+                             bias_reg=None,
+                             kernel=(3, 3),
                              activation=None,
                              padding='same',
                              strides=( 1, 1),
@@ -121,6 +153,8 @@ def create_convolution_block(input_layer,
     """
     layer = Conv2D(filters=n_filters,
                    kernel_size=kernel,
+                   kernel_regularizer=kernel_reg,
+                   bias_regularizer=bias_reg,
                    dilation_rate=dilation_rate,
                    padding=padding,
                    strides=strides,
@@ -139,16 +173,33 @@ def create_convolution_block(input_layer,
     else:
         return activation()(layer)
 
-def get_up_convolution(n_filters,
+# def get_up_convolution(n_filters,
+#                        pool_size,
+#                        kernel_size=(2, 2),
+#                        strides=(2, 2),
+#                        deconvolution=False):
+#     if deconvolution:
+#         return Deconvolution2D(filters=n_filters, kernel_size=kernel_size,
+#                                strides=strides)
+#     else:
+#         return UpSampling2D(size=pool_size)
+
+
+def get_up_convolution(input,
+                       n_filters,
                        pool_size,
                        kernel_size=(2, 2),
                        strides=(2, 2),
-                       deconvolution=False):
+                       deconvolution=False,
+                       kernel_reg=None,
+                       bias_reg=None):
     if deconvolution:
         return Deconvolution2D(filters=n_filters, kernel_size=kernel_size,
-                               strides=strides)
+                               strides=strides, kernel_regularizer=kernel_reg, bias_regularizer=bias_reg)(input)
     else:
-        return UpSampling2D(size=pool_size)
+        return Conv2D(filters=n_filters, kernel_size=kernel_size, padding='same',
+                      kernel_regularizer=kernel_reg, bias_regularizer=bias_reg)(UpSampling2D(size=pool_size)(input))
+
 
 if __name__ == '__main__':
     a = get_unet()
