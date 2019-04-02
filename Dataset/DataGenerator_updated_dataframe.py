@@ -49,7 +49,7 @@ def pad_data(data, desired_shape):
     return data_padded
 
 
-def crop_images_centered_over_label(t2_img, t1_img, flair_img, seg, sample_size):
+def crop_images_centered_over_label(t2_img, t1_img, t1ce_img, flair_img, seg, sample_size):
 
     x_sample_size = sample_size[0]
     y_sample_size = sample_size[1]
@@ -104,19 +104,24 @@ def crop_images_centered_over_label(t2_img, t1_img, flair_img, seg, sample_size)
     else:
         t1_img_cropped = None
 
+    if t1ce_img is not None:
+        t1ce_img_cropped = t1ce_img[crop_x0:crop_x1, crop_y0:crop_y1]
+    else:
+        t1ce_img_cropped = None
+
     if flair_img is not None:
         flair_img_cropped = flair_img[crop_x0:crop_x1, crop_y0:crop_y1]
     else:
         flair_img_cropped = None
 
-    return t2_img_cropped, t1_img_cropped, flair_img_cropped, seg_cropped
+    return t2_img_cropped, t1_img_cropped, t1ce_img_cropped, flair_img_cropped, seg_cropped
 
 
 class DataGenerator(keras.utils.Sequence):
     """
     Generates data for Keras
     """
-    def __init__(self, t2_sample, seg_sample, sample_path_main,
+    def __init__(self, t2_sample, seg_sample, fake_sample_path_main, real_sample_path_main,
                  batch_size=5, sample_size=(256, 256), real_or_fake='real', shuffle=False, augment_data=False,
                  t1_sample=None, flair_sample=None):
 
@@ -130,7 +135,9 @@ class DataGenerator(keras.utils.Sequence):
 
         self.shuffle = shuffle
 
-        self.sample_path_main = sample_path_main
+        self.fake_sample_path_main = fake_sample_path_main
+
+        self.real_sample_path_main = real_sample_path_main
 
         # self.seg_slice_list = seg_slice_list
         #
@@ -272,21 +279,21 @@ class DataGenerator(keras.utils.Sequence):
 
             t1ce_sample = True
 
-            self.sample_path_t1ce = '/home/kleingeo/CSC2541/MICCAI_BraTS_2018_Data_Training/'
+            # self.sample_path_t1ce = '/home/kleingeo/CSC2541/MICCAI_BraTS_2018_Data_Training/'
 
 
-            volume_name_split = seg_sample.split('_seg.nii.gz')[0].split('_')
+            volume_name_split = seg_sample.split('_')[-1].split('.')
 
-            seg_slice = int(volume_name_split[-1])
+            seg_slice = int(volume_name_split[0])
 
-            volume_name = '_'.join(volume_name_split[0],
-                                   volume_name_split[1],
-                                   volume_name_split[2],
-                                   volume_name_split[3])
+            volume_name = '_'.join([volume_name_split[0],
+                                    volume_name_split[1],
+                                    volume_name_split[2],
+                                    volume_name_split[3]])
 
-            seg_img = np.load(self.sample_path_main + '/' + seg_sample)
+            seg_img = np.load(self.fake_sample_path_main + '/' + seg_sample)
 
-            t2_img = np.load(self.sample_path_main + '/' + t2_sample)
+            t2_img = np.load(self.fake_sample_path_main + '/' + t2_sample)
 
             if len(t2_img.shape) > 2:
                 t2_img = t2_img[:, :, 0]
@@ -297,7 +304,15 @@ class DataGenerator(keras.utils.Sequence):
 
             if t1_sample is not None:
 
-                t1_img = np.load(self.sample_path_main + '/' + t1_sample)
+                if self.real_or_fake == 'fake':
+
+                  t1_img = np.load(self.fake_sample_path_main + '/' + t1_sample)
+
+                elif self.real_or_fake == 'real':
+
+                    t1_sample = volume_name + '_t1.nii.gz'
+                    t1_img_full = nib.load(self.real_sample_path_main + '/' + volume_name + '/' + t1_sample)
+                    t1_img = t1_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(t1_img.shape) > 2:
                     t1_img = t1_img[:, :, 0]
@@ -311,8 +326,15 @@ class DataGenerator(keras.utils.Sequence):
 
             if flair_sample is not None:
 
+                if self.real_or_fake == 'fake':
 
-                flair_img = np.load(self.sample_path_main + '/' + flair_sample)
+                    flair_img = np.load(self.fake_sample_path_main + '/' + flair_sample)
+
+                elif self.real_or_fake == 'real':
+
+                    flair_sample = volume_name + '_flair.nii.gz'
+                    flair_img_full = nib.load(self.real_sample_path_main + '/' + volume_name + '/' + flair_sample)
+                    flair_img = flair_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(flair_img.shape) > 2:
                     flair_img = flair_img[:, :, 0]
@@ -324,9 +346,15 @@ class DataGenerator(keras.utils.Sequence):
 
             if t1ce_sample is not None:
 
-                t1ce_sample = volume_name + '_t1ce.nii.gz'
-                t1ce_img_full = nib.load(self.sample_path_t1ce + '/' + volume_name + '/' + t1ce_sample)
-                t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
+                if self.real_or_fake == 'fake':
+
+                    t1ce_img = np.load(self.fake_sample_path_main + '/' + t1ce_sample)
+
+                elif self.real_or_fake == 'real':
+
+                    t1ce_sample = volume_name + '_t1ce.nii.gz'
+                    t1ce_img_full = nib.load(self.real_sample_path_main + '/' + volume_name + '/' + t1ce_sample)
+                    t1ce_img = t1ce_img_full.get_fdata()[:, :, int(seg_slice)]
 
                 if len(t1_img.shape) > 2:
                     t1ce_img = t1ce_img[:, :, 0]
@@ -352,6 +380,7 @@ class DataGenerator(keras.utils.Sequence):
 
             t2_img = resize(t2_img, output_shape=self.sample_size, order=3,
                             mode='reflect', anti_aliasing=True)
+
             seg_img = resize(seg_img, output_shape=self.sample_size, order=0,
                              mode='reflect', anti_aliasing=True)
 
@@ -385,13 +414,15 @@ class DataGenerator(keras.utils.Sequence):
 
 
 
-            # t2_img, t1_img, flair_img, seg_img = crop_images_centered_over_label(t2_img, t1_img, flair_img, seg_img,
-            #                                                                      self.sample_size)
-            #
+            # t2_img, t1_img, t1ce_img, flair_img, seg_img = crop_images_centered_over_label(t2_img,
+            #                                                                                t1_img, t1ce_img,
+            #                                                                                flair_img, seg_img,
+            #                                                                                self.sample_size)
+
 
 
             # Only care about tumour core (TC), no setting ET label to 0
-            seg_img[seg_img == 2] = 0
+            # seg_img[seg_img == 2] = 0
             # seg_img[seg_img == 1] = 0
 
             seg_img[seg_img > 1] = 1
@@ -435,13 +466,11 @@ if __name__ == '__main__':
 
     import pandas as pd
 
-    df = pd.read_pickle('../Dataset/seg_slice_dataframe.pickle')
+    df = pd.read_pickle('../Dataset/seg_slice_dataframe_complete_WT.pickle')
 
-    t2_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
-    seg_file_path = '/localdisk1/GeoffKlein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
-    t1_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_T1'
-    flair_file_path = '/localdisk1/GeoffKlein/BRATS2018/T2_Flair'
 
+    fake_sample_path_main = 'D:/Geoff_Klein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
+    real_sample_path_main = 'D:/Geoff_Klein/BRATS2018/MICCAI_BraTS_2018_Data_Training/HGG'
 
     t2_filelist_train = df['t2_filename'].loc[df['train_val_test'] == 'train'].values
     t1_filelist_train = df['t1_filename'].loc[df['train_val_test'] == 'train'].values
@@ -452,16 +481,13 @@ if __name__ == '__main__':
     flair_filelist_val = df['flair_filename'].loc[df['train_val_test'] == 'val'].values
 
     seg_filelist_train = df['seg_filename'].loc[df['train_val_test'] == 'train'].values
-    seg_slice_train = df['slice_number'].loc[df['train_val_test'] == 'train'].values
 
     seg_filelist_val = df['seg_filename'].loc[df['train_val_test'] == 'val'].values
-    seg_slice_val = df['slice_number'].loc[df['train_val_test'] == 'val'].values
 
 
 
     params_train_generator = {'sample_size': (256, 256),
                               'batch_size': 45,
-                              'n_channels': 3,
                               'shuffle': False,
                               'augment_data': False}
 
@@ -469,13 +495,10 @@ if __name__ == '__main__':
     training_generator = DataGenerator(
         t2_sample=t2_filelist_train,
         seg_sample=seg_filelist_train,
-        t2_sample_main_path=t2_file_path,
-        seg_sample_main_paths=seg_file_path,
-        seg_slice_list=seg_slice_train,
+        fake_sample_path_main=fake_sample_path_main,
+        real_sample_path_main=real_sample_path_main,
         t1_sample=t1_filelist_train,
         flair_sample=flair_filelist_train,
-        t1_sample_main_path=t1_file_path,
-        flair_sample_main_path=flair_file_path,
         **params_train_generator)
 
 

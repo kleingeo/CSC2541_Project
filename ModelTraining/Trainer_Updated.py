@@ -101,7 +101,8 @@ class Trainer():
                  seg_filelist_train,
                  t2_img_filelist_val,
                  seg_filelist_val,
-                 sample_path_main,
+                 fake_sample_path_main,
+                 real_sample_path_main,
                  t1_img_filelist_train=None,
                  flair_img_filelist_train=None,
                  t1_img_filelist_val=None,
@@ -127,7 +128,8 @@ class Trainer():
         self.seg_filelist_train = seg_filelist_train
         self.seg_filelist_val = seg_filelist_val
 
-        self.sample_path_main = sample_path_main
+        self.fake_sample_path_main = fake_sample_path_main
+        self.real_sample_path_main = real_sample_path_main
 
         self.t1_img_filelist_train = t1_img_filelist_train
         self.t1_img_filelist_val = t1_img_filelist_val
@@ -355,7 +357,8 @@ class Trainer():
             training_generator = DataGenerator(
                 t2_sample=self.t2_img_filelist_train[:train_size],
                 seg_sample=self.seg_filelist_train[:train_size],
-                sample_path_main=self.sample_path_main,
+                fake_sample_path_main=self.fake_sample_path_main,
+                real_sample_path_main=self.real_sample_path_main,
                 t1_sample=self.t1_img_filelist_train[:train_size],
                 flair_sample=self.flair_filelist_train[:train_size],
                 **params_train_generator)
@@ -363,7 +366,8 @@ class Trainer():
             validation_generator = DataGenerator(
                 t2_sample=self.t2_img_filelist_val,
                 seg_sample=self.seg_filelist_val,
-                sample_path_main=self.sample_path_main,
+                fake_sample_path_main=self.fake_sample_path_main,
+                real_sample_path_main=self.real_sample_path_main,
                 t1_sample=self.t1_img_filelist_val,
                 flair_sample=self.flair_img_filelist_val,
                 **params_val_generator)
@@ -449,7 +453,7 @@ class Trainer():
                 verbose=1,
                 shuffle=True,
                 use_multiprocessing=True,
-                workers=10,
+                workers=20,
                 max_queue_size=200)
 
             self.model.save(self.model_weights_filename + '_' + str(epoch_size) + '_weights.h5')
