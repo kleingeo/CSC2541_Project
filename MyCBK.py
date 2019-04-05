@@ -10,16 +10,21 @@ import numpy as np
 
 class MyCBK(keras.callbacks.Callback):
 
-    def __init__(self, model, ofolder, logs={}):
+    def __init__(self, model, ofolder):
         """
         Initializer for my custom made call back class
         :param model: The model that I will save during training.
         :param ofolder: The location to save files
         :param logs:
         """
+        
+        super(MyCBK, self).__init__()
+        
         self.model_to_save = model
         self.ofolder = ofolder
         self.losses = []
+
+
 
     def on_epoch_end(self, epoch, logs={}):
         """

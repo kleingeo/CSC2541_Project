@@ -38,10 +38,10 @@ if __name__ == "__main__":
                '/imagesTs/'
     target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
                  '/labelsTs/'
-    model_folder = '/home/gkuling/2019-03-30-CSC2541Project/cGANUnetAugmentor/'
+    model_folder = '/home/geklein/2019-03-30-CSC2541Project/UNet_reuglarWAugcGAN/'
 
-    ofolder = '/home/gkuling/2019-03-30-CSC2541Project/UNet_reuglarWAugcGAN' \
-              '/test_results/'
+    ofolder = '/home/geklein/2019-03-30-CSC2541Project/UNet_reuglarWAugcGAN' \
+              '/test_results'
 
     a = Predictor(model_folder=model_folder,
                   data_folder=data_dir,

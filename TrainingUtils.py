@@ -35,15 +35,23 @@ def dice_coefficient_numpy_arrays(y_true, y_pred):
     :return: dice coefficient
     """
     epsilon = np.finfo(float).eps
-    y_true = np.asarray(y_true).astype(np.bool)
-    y_pred = np.asarray(y_pred).astype(np.bool)
+    # y_true = np.asarray(y_true).astype(np.bool)
+    # y_pred = np.asarray(y_pred).astype(np.bool)
+
+    y_true = y_true.flatten()
+    y_pred = y_pred.flatten()
 
     if y_pred.shape != y_true.shape:
         raise ValueError("shape mismatch in dice coefficient calculations.")
-    intersection = np.logical_and(y_true, y_pred)
-    dice_value = \
-        (2.0 * intersection.sum() + epsilon) / \
-        (y_true.sum() + y_pred.sum() + epsilon)
+    # intersection = np.logical_and(y_true, y_pred)
+
+    intersection = np.sum(y_true * y_pred)
+
+    # dice_value = (2.0 * intersection + epsilon) / (y_true.sum() + y_pred.sum() + epsilon)
+
+    dice_value = (2.0 * intersection) / (y_true.sum() + y_pred.sum())
+
+
     return dice_value
 
 def My_new_loss(y_true, y_pred):
@@ -55,6 +63,15 @@ def My_new_loss(y_true, y_pred):
     '''
 
     ave_DSC = (dice_coef(y_true[:, 0], y_pred[:, 0]) +
-               dice_coef(y_true[:,1] ,y_pred[:,1]))
+               dice_coef(y_true[:, 1], y_pred[:, 1]))
 
     return 2.0 - ave_DSC
+
+
+def dice_1(y_true, y_pred):
+
+    return dice_coef(y_true[:, 0], y_pred[:, 0])
+
+
+def dice_2(y_true, y_pred):
+    return dice_coef(y_true[:, 1], y_pred[:, 1])

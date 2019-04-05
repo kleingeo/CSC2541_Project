@@ -18,12 +18,17 @@ if __name__ == "__main__":
                '/imagesTr/'
     target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
                  '/labelsTr/'
-    ofolder = '/home/gkuling/2019-03-30-CSC2541Project/UNet_regularWAug/'
+    ofolder = '/home/geklein/2019-03-30-CSC2541Project/UNet_regularWAug/'
 
-    aug_folder = '/home/gkuling/2019-03-30-CSC2541Project/UNetAugmentor/'
+    aug_folder = '/home/geklein/2019-03-30-CSC2541Project/UNetAugmentor/'
 
-    a = Trainer(data_dir, target_dir, ofolder, samples_per_card=int(50/4),
-                epochs=50, gpus_used=4,
+    if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
+        CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
+    else:
+        CUDA_VISIBLE_DEVICES = ['None']
+
+    a = Trainer(data_dir, target_dir, ofolder, samples_per_card=10,
+                epochs=50, gpus_used=len(CUDA_VISIBLE_DEVICES),
                 batch_size=None, training_direction=True,
                 data_aug=True,
                 aug_folder=aug_folder)
@@ -38,10 +43,10 @@ if __name__ == "__main__":
                '/imagesTs/'
     target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
                  '/labelsTs/'
-    model_folder = '/home/gkuling/2019-03-30-CSC2541Project/UNet_regularWAug/'
+    model_folder = '/home/geklein/2019-03-30-CSC2541Project/UNet_regularWAug/'
 
-    ofolder = '/home/gkuling/2019-03-30-CSC2541Project/UNet_regularWAug' \
-              '/test_results/'
+    ofolder = '/home/geklein/2019-03-30-CSC2541Project/UNet_regularWAug' \
+              '/test_results'
 
     a = Predictor(model_folder=model_folder,
                   data_folder=data_dir,

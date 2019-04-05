@@ -1,0 +1,120 @@
+2019-03-27 15:51:27.102 INFO : Trainer.py : Line 316 :                train() : model parameters are: 
+2019-03-27 15:51:27.102 INFO : Trainer.py : Line 317 :                train() : augment_training    True
+batch_size            45
+epochs               100
+model_type          UNet
+train_faction          1
+train_fraction         1
+with_fake           True
+Name: 0, dtype: object
+2019-03-27 15:51:27.105 INFO : Trainer.py : Line 252 :      build_filenames() : model json file is ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/model_json_UNet_1_True_True.json
+2019-03-27 15:51:27.105 INFO : Trainer.py : Line 254 :      build_filenames() : model weights file is ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/UNet_1_True_True
+2019-03-27 15:51:27.105 INFO : Trainer.py : Line 256 :      build_filenames() : training history file is ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/training_history_UNet_1_True_True.csv
+2019-03-27 15:51:27.105 INFO : Trainer.py : Line 324 :                train() : model parameters number 0 of RangeIndex(start=0, stop=70, step=1)
+2019-03-27 15:51:27.429 INFO : Trainer.py : Line 414 :                train() : model has been built successfully
+2019-03-27 15:51:32.685 INFO : Trainer.py : Line 445 :                train() : training started
+2019-03-27 15:51:32.694 INFO : Trainer.py : Line 282 :   save_model_to_json() : model saved successfully to ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/model_json_UNet_1_True_True.json
+2019-03-27 15:54:45.711 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 0 - loss: -0.35232 - dice: 0.35232 - val_loss: -0.55360 - val_dice: 0.55360.
+2019-03-27 15:57:22.149 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 1 - loss: -0.54194 - dice: 0.54194 - val_loss: -0.58181 - val_dice: 0.58181.
+2019-03-27 15:59:57.964 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 2 - loss: -0.55441 - dice: 0.55441 - val_loss: -0.59116 - val_dice: 0.59116.
+2019-03-27 16:02:40.360 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 3 - loss: -0.57524 - dice: 0.57524 - val_loss: -0.60932 - val_dice: 0.60932.
+2019-03-27 16:05:22.729 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 4 - loss: -0.58383 - dice: 0.58383 - val_loss: -0.59238 - val_dice: 0.59238.
+2019-03-27 16:07:51.317 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 5 - loss: -0.59588 - dice: 0.59588 - val_loss: -0.60098 - val_dice: 0.60098.
+2019-03-27 16:10:35.899 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 6 - loss: -0.59788 - dice: 0.59788 - val_loss: -0.53331 - val_dice: 0.53331.
+2019-03-27 16:13:06.166 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 7 - loss: -0.61400 - dice: 0.61400 - val_loss: -0.54544 - val_dice: 0.54544.
+2019-03-27 16:15:36.527 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 8 - loss: -0.62093 - dice: 0.62093 - val_loss: -0.56877 - val_dice: 0.56877.
+2019-03-27 16:18:15.290 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 9 - loss: -0.62124 - dice: 0.62124 - val_loss: -0.57493 - val_dice: 0.57493.
+2019-03-27 16:20:48.023 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 10 - loss: -0.64096 - dice: 0.64096 - val_loss: -0.57473 - val_dice: 0.57473.
+2019-03-27 16:23:25.729 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 11 - loss: -0.65416 - dice: 0.65416 - val_loss: -0.53879 - val_dice: 0.53879.
+2019-03-27 16:26:03.577 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 12 - loss: -0.65991 - dice: 0.65991 - val_loss: -0.56567 - val_dice: 0.56567.
+2019-03-27 16:28:38.784 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 13 - loss: -0.66448 - dice: 0.66448 - val_loss: -0.60031 - val_dice: 0.60031.
+2019-03-27 16:31:29.609 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 14 - loss: -0.66927 - dice: 0.66927 - val_loss: -0.55888 - val_dice: 0.55888.
+2019-03-27 16:33:50.790 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 15 - loss: -0.68486 - dice: 0.68486 - val_loss: -0.58001 - val_dice: 0.58001.
+2019-03-27 16:36:27.949 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 16 - loss: -0.70021 - dice: 0.70021 - val_loss: -0.54194 - val_dice: 0.54194.
+2019-03-27 16:39:03.733 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 17 - loss: -0.70503 - dice: 0.70503 - val_loss: -0.53163 - val_dice: 0.53163.
+2019-03-27 16:41:37.196 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 18 - loss: -0.71930 - dice: 0.71930 - val_loss: -0.54438 - val_dice: 0.54438.
+2019-03-27 16:44:35.877 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 19 - loss: -0.72972 - dice: 0.72972 - val_loss: -0.50311 - val_dice: 0.50311.
+2019-03-27 16:46:50.942 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 20 - loss: -0.72700 - dice: 0.72700 - val_loss: -0.57230 - val_dice: 0.57230.
+2019-03-27 16:49:18.423 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 21 - loss: -0.73855 - dice: 0.73855 - val_loss: -0.59553 - val_dice: 0.59553.
+2019-03-27 16:51:55.329 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 22 - loss: -0.75425 - dice: 0.75425 - val_loss: -0.51984 - val_dice: 0.51984.
+2019-03-27 16:54:36.163 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 23 - loss: -0.76409 - dice: 0.76409 - val_loss: -0.60902 - val_dice: 0.60902.
+2019-03-27 16:57:15.395 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 24 - loss: -0.77511 - dice: 0.77511 - val_loss: -0.56746 - val_dice: 0.56746.
+2019-03-27 16:59:50.350 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 25 - loss: -0.78286 - dice: 0.78286 - val_loss: -0.57480 - val_dice: 0.57480.
+2019-03-27 17:02:42.005 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 26 - loss: -0.78350 - dice: 0.78350 - val_loss: -0.60839 - val_dice: 0.60839.
+2019-03-27 17:04:58.701 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 27 - loss: -0.78891 - dice: 0.78891 - val_loss: -0.55491 - val_dice: 0.55491.
+2019-03-27 17:07:43.216 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 28 - loss: -0.79094 - dice: 0.79094 - val_loss: -0.49296 - val_dice: 0.49296.
+2019-03-27 17:10:18.191 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 29 - loss: -0.79527 - dice: 0.79527 - val_loss: -0.50998 - val_dice: 0.50998.
+2019-03-27 17:12:55.055 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 30 - loss: -0.80780 - dice: 0.80780 - val_loss: -0.56544 - val_dice: 0.56544.
+2019-03-27 17:15:32.341 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 31 - loss: -0.81154 - dice: 0.81154 - val_loss: -0.62379 - val_dice: 0.62379.
+2019-03-27 17:17:59.515 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 32 - loss: -0.80852 - dice: 0.80852 - val_loss: -0.53640 - val_dice: 0.53640.
+2019-03-27 17:20:35.178 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 33 - loss: -0.80911 - dice: 0.80911 - val_loss: -0.59146 - val_dice: 0.59146.
+2019-03-27 17:23:07.123 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 34 - loss: -0.82000 - dice: 0.82000 - val_loss: -0.57453 - val_dice: 0.57453.
+2019-03-27 17:25:52.855 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 35 - loss: -0.82051 - dice: 0.82051 - val_loss: -0.57586 - val_dice: 0.57586.
+2019-03-27 17:28:27.903 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 36 - loss: -0.82590 - dice: 0.82590 - val_loss: -0.54304 - val_dice: 0.54304.
+2019-03-27 17:30:47.218 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 37 - loss: -0.83106 - dice: 0.83106 - val_loss: -0.53871 - val_dice: 0.53871.
+2019-03-27 17:33:26.362 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 38 - loss: -0.83434 - dice: 0.83434 - val_loss: -0.58430 - val_dice: 0.58430.
+2019-03-27 17:36:09.870 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 39 - loss: -0.84005 - dice: 0.84005 - val_loss: -0.60547 - val_dice: 0.60547.
+2019-03-27 17:38:19.637 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 40 - loss: -0.83875 - dice: 0.83875 - val_loss: -0.58042 - val_dice: 0.58042.
+2019-03-27 17:40:51.450 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 41 - loss: -0.84551 - dice: 0.84551 - val_loss: -0.52606 - val_dice: 0.52606.
+2019-03-27 17:43:24.912 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 42 - loss: -0.83838 - dice: 0.83838 - val_loss: -0.55626 - val_dice: 0.55626.
+2019-03-27 17:45:55.306 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 43 - loss: -0.84718 - dice: 0.84718 - val_loss: -0.52840 - val_dice: 0.52840.
+2019-03-27 17:48:26.414 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 44 - loss: -0.84744 - dice: 0.84744 - val_loss: -0.53997 - val_dice: 0.53997.
+2019-03-27 17:50:58.799 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 45 - loss: -0.84826 - dice: 0.84826 - val_loss: -0.52060 - val_dice: 0.52060.
+2019-03-27 17:53:39.472 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 46 - loss: -0.85453 - dice: 0.85453 - val_loss: -0.53761 - val_dice: 0.53761.
+2019-03-27 17:56:03.956 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 47 - loss: -0.85444 - dice: 0.85444 - val_loss: -0.54997 - val_dice: 0.54997.
+2019-03-27 17:58:28.652 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 48 - loss: -0.85891 - dice: 0.85891 - val_loss: -0.52461 - val_dice: 0.52461.
+2019-03-27 18:01:13.141 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 49 - loss: -0.85805 - dice: 0.85805 - val_loss: -0.47647 - val_dice: 0.47647.
+2019-03-27 18:03:23.419 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 50 - loss: -0.86087 - dice: 0.86087 - val_loss: -0.51572 - val_dice: 0.51572.
+2019-03-27 18:05:56.321 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 51 - loss: -0.85957 - dice: 0.85957 - val_loss: -0.53289 - val_dice: 0.53289.
+2019-03-27 18:08:30.291 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 52 - loss: -0.86434 - dice: 0.86434 - val_loss: -0.54062 - val_dice: 0.54062.
+2019-03-27 18:10:56.597 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 53 - loss: -0.86585 - dice: 0.86585 - val_loss: -0.52299 - val_dice: 0.52299.
+2019-03-27 18:13:26.517 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 54 - loss: -0.86959 - dice: 0.86959 - val_loss: -0.58280 - val_dice: 0.58280.
+2019-03-27 18:15:54.865 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 55 - loss: -0.86728 - dice: 0.86728 - val_loss: -0.57847 - val_dice: 0.57847.
+2019-03-27 18:18:33.916 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 56 - loss: -0.86029 - dice: 0.86029 - val_loss: -0.56740 - val_dice: 0.56740.
+2019-03-27 18:21:00.535 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 57 - loss: -0.87179 - dice: 0.87179 - val_loss: -0.59079 - val_dice: 0.59079.
+2019-03-27 18:23:29.893 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 58 - loss: -0.87357 - dice: 0.87357 - val_loss: -0.57408 - val_dice: 0.57408.
+2019-03-27 18:26:15.221 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 59 - loss: -0.87342 - dice: 0.87342 - val_loss: -0.58997 - val_dice: 0.58997.
+2019-03-27 18:28:26.216 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 60 - loss: -0.86590 - dice: 0.86590 - val_loss: -0.56363 - val_dice: 0.56363.
+2019-03-27 18:31:05.989 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 61 - loss: -0.87516 - dice: 0.87516 - val_loss: -0.53851 - val_dice: 0.53851.
+2019-03-27 18:33:35.765 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 62 - loss: -0.87897 - dice: 0.87897 - val_loss: -0.54664 - val_dice: 0.54664.
+2019-03-27 18:36:00.153 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 63 - loss: -0.87395 - dice: 0.87395 - val_loss: -0.59409 - val_dice: 0.59409.
+2019-03-27 18:38:31.063 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 64 - loss: -0.87793 - dice: 0.87793 - val_loss: -0.53143 - val_dice: 0.53143.
+2019-03-27 18:40:56.820 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 65 - loss: -0.87857 - dice: 0.87857 - val_loss: -0.52377 - val_dice: 0.52377.
+2019-03-27 18:43:29.514 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 66 - loss: -0.87759 - dice: 0.87759 - val_loss: -0.58005 - val_dice: 0.58005.
+2019-03-27 18:46:06.405 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 67 - loss: -0.88259 - dice: 0.88259 - val_loss: -0.54867 - val_dice: 0.54867.
+2019-03-27 18:48:32.680 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 68 - loss: -0.88441 - dice: 0.88441 - val_loss: -0.56183 - val_dice: 0.56183.
+2019-03-27 18:51:03.718 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 69 - loss: -0.88531 - dice: 0.88531 - val_loss: -0.55693 - val_dice: 0.55693.
+2019-03-27 18:53:39.698 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 70 - loss: -0.88261 - dice: 0.88261 - val_loss: -0.56530 - val_dice: 0.56530.
+2019-03-27 18:56:05.095 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 71 - loss: -0.88550 - dice: 0.88550 - val_loss: -0.58740 - val_dice: 0.58740.
+2019-03-27 18:58:39.681 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 72 - loss: -0.88807 - dice: 0.88807 - val_loss: -0.55477 - val_dice: 0.55477.
+2019-03-27 19:01:08.411 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 73 - loss: -0.88603 - dice: 0.88603 - val_loss: -0.56715 - val_dice: 0.56715.
+2019-03-27 19:03:35.096 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 74 - loss: -0.88979 - dice: 0.88979 - val_loss: -0.54809 - val_dice: 0.54809.
+2019-03-27 19:06:07.695 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 75 - loss: -0.88961 - dice: 0.88961 - val_loss: -0.51425 - val_dice: 0.51425.
+2019-03-27 19:08:33.330 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 76 - loss: -0.89077 - dice: 0.89077 - val_loss: -0.52443 - val_dice: 0.52443.
+2019-03-27 19:11:09.641 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 77 - loss: -0.89034 - dice: 0.89034 - val_loss: -0.52863 - val_dice: 0.52863.
+2019-03-27 19:13:34.095 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 78 - loss: -0.88616 - dice: 0.88616 - val_loss: -0.58294 - val_dice: 0.58294.
+2019-03-27 19:16:28.629 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 79 - loss: -0.88896 - dice: 0.88896 - val_loss: -0.54647 - val_dice: 0.54647.
+2019-03-27 19:18:39.733 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 80 - loss: -0.89261 - dice: 0.89261 - val_loss: -0.53421 - val_dice: 0.53421.
+2019-03-27 19:21:13.580 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 81 - loss: -0.89335 - dice: 0.89335 - val_loss: -0.58198 - val_dice: 0.58198.
+2019-03-27 19:23:44.387 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 82 - loss: -0.89258 - dice: 0.89258 - val_loss: -0.55660 - val_dice: 0.55660.
+2019-03-27 19:26:21.106 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 83 - loss: -0.89195 - dice: 0.89195 - val_loss: -0.56737 - val_dice: 0.56737.
+2019-03-27 19:28:43.008 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 84 - loss: -0.89218 - dice: 0.89218 - val_loss: -0.61994 - val_dice: 0.61994.
+2019-03-27 19:31:17.871 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 85 - loss: -0.89431 - dice: 0.89431 - val_loss: -0.51270 - val_dice: 0.51270.
+2019-03-27 19:33:41.072 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 86 - loss: -0.89233 - dice: 0.89233 - val_loss: -0.54756 - val_dice: 0.54756.
+2019-03-27 19:36:17.919 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 87 - loss: -0.89466 - dice: 0.89466 - val_loss: -0.57087 - val_dice: 0.57087.
+2019-03-27 19:38:46.310 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 88 - loss: -0.89779 - dice: 0.89779 - val_loss: -0.56034 - val_dice: 0.56034.
+2019-03-27 19:41:25.899 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 89 - loss: -0.89852 - dice: 0.89852 - val_loss: -0.57238 - val_dice: 0.57238.
+2019-03-27 19:43:52.634 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 90 - loss: -0.90103 - dice: 0.90103 - val_loss: -0.52288 - val_dice: 0.52288.
+2019-03-27 19:46:25.728 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 91 - loss: -0.89690 - dice: 0.89690 - val_loss: -0.58886 - val_dice: 0.58886.
+2019-03-27 19:48:58.384 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 92 - loss: -0.90211 - dice: 0.90211 - val_loss: -0.52516 - val_dice: 0.52516.
+2019-03-27 19:51:27.541 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 93 - loss: -0.89898 - dice: 0.89898 - val_loss: -0.58782 - val_dice: 0.58782.
+2019-03-27 19:54:12.930 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 94 - loss: -0.89530 - dice: 0.89530 - val_loss: -0.51910 - val_dice: 0.51910.
+2019-03-27 19:56:49.404 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 95 - loss: -0.90157 - dice: 0.90157 - val_loss: -0.58366 - val_dice: 0.58366.
+2019-03-27 19:59:25.456 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 96 - loss: -0.90321 - dice: 0.90321 - val_loss: -0.55754 - val_dice: 0.55754.
+2019-03-27 20:02:05.835 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 97 - loss: -0.90327 - dice: 0.90327 - val_loss: -0.57364 - val_dice: 0.57364.
+2019-03-27 20:04:42.562 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 98 - loss: -0.90235 - dice: 0.90235 - val_loss: -0.54846 - val_dice: 0.54846.
+2019-03-27 20:07:25.486 INFO : Trainer.py : Line 69 :         on_epoch_end() : Epoch 99 - loss: -0.90153 - dice: 0.90153 - val_loss: -0.55946 - val_dice: 0.55946.
+2019-03-27 20:07:42.533 INFO : Trainer.py : Line 468 :                train() : training completed for this set of parameters.
+2019-03-27 20:07:42.636 INFO : Trainer.py : Line 267 : save_training_history() : history was saved successfully to ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/training_history_UNet_1_True_True.csv
+2019-03-27 20:07:42.689 INFO : Trainer.py : Line 473 :                train() : ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/model_json_UNet_1_True_True.json is successfully saved.
+2019-03-27 20:07:42.689 INFO : Trainer.py : Line 475 :                train() : ../TrainOutput/2019-03-27-15-51/UNet_1_True_True/training_history_UNet_1_True_True.csv is successfully saved.

@@ -17,16 +17,23 @@ if __name__ == "__main__":
                '/imagesTr/'
     target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
                  '/labelsTr/'
-    ofolder = '/home/gkuling/2019-03-30-CSC2541Project/UNetAugmentor/'
+    ofolder = '/home/geklein/2019-03-30-CSC2541Project/UNetAugmentor_grey_interp/'
 
-    a = Trainer(data_dir, target_dir, ofolder, samples_per_card=int(50/2),
-                epochs=150, gpus_used=2,
+
+    if 'CUDA_VISIBLE_DEVICES' in os.environ.keys():
+        CUDA_VISIBLE_DEVICES = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
+    else:
+        CUDA_VISIBLE_DEVICES = ['None']
+
+
+    a = Trainer(data_dir, target_dir, ofolder, samples_per_card=10,
+                epochs=150, gpus_used=len(CUDA_VISIBLE_DEVICES),
                 batch_size=None, training_direction=False,
                 train_aug=True)
 
     a.train_the_model(t_opt=K.optimizers.adam(lr=1e-4),
                       loss=K.losses.mse,
-                      t_depth = 4,
+                      t_depth=4,
                       t_dropout=0.5)
 
     print('done')

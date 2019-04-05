@@ -54,16 +54,16 @@ class Pix2Pix():
         self.disc_patch = (self.channels, 8, 8)
 
         # Number of filters in the first layer of G and D
-        self.gf = 64
         self.df = 64
 
         optimizer = Adam(0.0002, 0.5)
+        # optimizer = Adam(1e-5, 0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
         self.discriminator.compile(loss='mse',
-            optimizer=optimizer,
-            metrics=['accuracy'])
+                                   optimizer=optimizer,
+                                   metrics=['accuracy'])
 
         #-------------------------
         # Construct Computational
@@ -86,19 +86,15 @@ class Pix2Pix():
         # Discriminators determines validity of translated images / condition pairs
         valid = self.discriminator([fake_A, img_B])
 
-        self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A],
-                              )
+        self.combined = Model(inputs=[img_A, img_B], outputs=[valid, fake_A])
         self.combined.compile(loss=['mse', 'mae'],
                               loss_weights=[1, 100],
                               optimizer=optimizer)
 
     def build_generator(self):
 
-        json_file_name = \
-            [i for i in os.listdir(self.pretrained_folder) if i.endswith('json')][0]
-        weights_file_name = \
-            [i for i in os.listdir(self.pretrained_folder) if i.startswith(
-                'model_best')][0]
+        json_file_name = [i for i in os.listdir(self.pretrained_folder) if i.endswith('json')][0]
+        weights_file_name = [i for i in os.listdir(self.pretrained_folder) if i.startswith('model_best')][0]
         json_file = open(''.join([self.pretrained_folder, '/', json_file_name]))
         loaded_model_json = json_file.read()
         json_file.close()
@@ -107,7 +103,7 @@ class Pix2Pix():
         # Load the weights to the model
         model.load_weights(''.join([self.pretrained_folder, '/', weights_file_name]))
 
-        model.name='generator'
+        model.name = 'generator'
 
         return model
 
@@ -138,6 +134,7 @@ class Pix2Pix():
         return Model([img_A, img_B], validity, name='discriminator')
 
     def train(self, epochs, sample_interval=50):
+
 
         start_time = datetime.datetime.now()
 
@@ -182,14 +179,18 @@ class Pix2Pix():
                 # If at save interval => save generated image samples
                 if i % sample_interval == 0:
                     self.sample_images(epoch, i)
+
         ## Save the model after training
+
         model_json = self.generator.to_json()
+
         with open(TrainerFileNamesUtil.create_model_json_filename(
                 output_directory=self.ofolder,
                 time_stamp=TrainerFileNamesUtil.get_time(),
-                keyword='UNet_cGANAugmentor'), 'w') as \
-                jason_file:
+                keyword='UNet_cGANAugmentor'),
+                'w') as jason_file:
             jason_file.write(model_json)
+
         self.generator.save(self.ofolder + '/model_best_weights_.h5')
 
     def sample_images(self, epoch, batch_i):
@@ -198,11 +199,13 @@ class Pix2Pix():
         self.data_loader.batch_size = 3
 
         imgs_B, imgs_A = self.data_loader.__getitem__(0)
+
         fake_A = self.generator.predict(imgs_B)
+
         self.data_loader.batch_size = self.batch_size
 
-        gen_imgs = np.concatenate([np.expand_dims(imgs_B[:,1,:,:], axis=1),
-                                                  fake_A, imgs_A])
+        gen_imgs = np.concatenate([np.expand_dims(imgs_B[:, 1, :, :], axis=1),
+                                   fake_A, imgs_A])
 
         # Rescale images 0 - 1
         gen_imgs = 0.5 * gen_imgs + 0.5

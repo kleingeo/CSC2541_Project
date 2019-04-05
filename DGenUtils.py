@@ -24,19 +24,27 @@ def PreprocessTrainingData(data_files, target_files, input_size):
         rs_data = sitk.GetArrayFromImage(cubic_resample(temp_data, spacing=1.0))
         rs_targ = sitk.GetArrayFromImage(cubic_resample(temp_targ, spacing=1.0))
 
+        rs_targ = np.where(rs_targ <= 1, 0, 1)
+
         for i1 in range(rs_data.shape[0]):
-            if rs_targ[i1,...].max() >1:
-                pd_data, pd_targ = \
-                    crop_images_centered_over_label(rs_data[i1,...],
-                                                    rs_targ[i1,...],
-                                                    input_size)
+            if rs_targ[i1, ...].max() > 0:
+
+                pd_data, pd_targ = crop_images_centered_over_label(rs_data[i1, ...],
+                                                                   rs_targ[i1, ...],
+                                                                   input_size)
             else:
-                pd_data = pad_image(rs_data[i1,...],shape=input_size,dim=2)
-                pd_targ = pad_image(rs_targ[i1,...],shape=input_size,dim=2)
-            a = normalize(pd_data)
-            b = np.nan_to_num(a)
-            data.append(b)
-            targ.append((pd_targ==2).astype(np.uint8))
+                # pd_data = pad_image(rs_data[i1, ...], shape=input_size, dim=2)
+                # pd_targ = pad_image(rs_targ[i1, ...], shape=input_size, dim=2)
+
+                continue
+
+            # a = normalize(pd_data)
+
+            pd_data_norm = ((pd_data - pd_data.min()) / (pd_data.max() - pd_data.min())) * 255
+
+            # b = np.nan_to_num(a)
+            data.append(pd_data_norm)
+            targ.append((pd_targ == 1).astype(np.uint8))
 
     return data, targ
 
@@ -76,7 +84,7 @@ def pad_image(np_im, shape, dim):
 
     Args:
         np_im: numpy array
-        shape: [nslices,nrows,ncols]
+        shape: [nslices, nrows, ncols]
 
     Returns:
         np_padded : new numpy array
@@ -116,10 +124,8 @@ def pad_image(np_im, shape, dim):
             old_llims[1]: old_ulims[1],
             old_llims[2]: old_ulims[2]]
     else:
-        np_padded[pad_llims[0]: pad_ulims[0],
-        pad_llims[1]: pad_ulims[1]] = \
-            np_im[old_llims[0]: old_ulims[0],
-            old_llims[1]: old_ulims[1]]
+        np_padded[pad_llims[0]: pad_ulims[0], pad_llims[1]: pad_ulims[1]] = np_im[old_llims[0]: old_ulims[0],
+                                                                                  old_llims[1]: old_ulims[1]]
 
     return np_padded
 
@@ -135,7 +141,7 @@ def crop_images_centered_over_label(img, label, sample_size):
     x_sample_size = sample_size[0]
     y_sample_size = sample_size[1]
 
-    label_idx = np.argwhere(label == 2)
+    label_idx = np.argwhere(label == 1)
 
     (ymin, xmin), (ymax, xmax) = label_idx.min(0), label_idx.max(0) + 1
 
@@ -173,6 +179,63 @@ def crop_images_centered_over_label(img, label, sample_size):
 
     if crop_y0 < 0:
         crop_y0 = 0
+
+    crop_x1 = crop_x0 + x_sample_size
+    crop_y1 = crop_y0 + y_sample_size
+
+    cropped_img = img[crop_x0:crop_x1, crop_y0:crop_y1]
+    cropped_label = label[crop_x0:crop_x1, crop_y0:crop_y1]
+
+    return cropped_img, cropped_label
+
+
+def crop_images_centered_over_label_rev2(img, label, sample_size):
+
+    x_sample_size = sample_size[0]
+    y_sample_size = sample_size[1]
+
+    label_idx = np.argwhere(label == 1)
+
+    (ymin, xmin), (ymax, xmax) = label_idx.min(0), label_idx.max(0) + 1
+
+    xlength = xmax - xmin
+    ylength = ymax - ymin
+
+    assert x_sample_size >= xlength, 'Segmentation is too large for cropping size'
+
+    assert y_sample_size >= ylength, 'Segmentation is too large for cropping size'
+
+    # Recenter cropped images
+    hx = int((x_sample_size - xlength) / 2)
+    hy = int((y_sample_size - ylength) / 2)
+
+
+    # Initial index for cropping
+    crop_x0 = xmin - hx
+    crop_y0 = ymin - hy
+
+    # Check indicies for cropping to ensure they are within the image
+
+    # # Check to see if ending index is outside image
+    # if crop_x0 + x_sample_size > img.shape[0]:
+    #
+    #     # If crop ending index is outside the image, adjust initial index based on difference
+    #     diff_x0 = crop_x0 - (img.shape[0] - x_sample_size)
+    #
+    #     crop_x0 = crop_x0 - diff_x0
+    #
+    # # Repeat for y direction
+    # if crop_y0 + y_sample_size > img.shape[1]:
+    #     diff_y0 = crop_y0 - (img.shape[1] - y_sample_size)
+    #
+    #     crop_y0 = crop_y0 - diff_y0
+    #
+    # # Ensure initial crop does not have a negative index based on adjustment. If so, set to zero
+    # if crop_x0 < 0:
+    #     crop_x0 = 0
+    #
+    # if crop_y0 < 0:
+    #     crop_y0 = 0
 
     crop_x1 = crop_x0 + x_sample_size
     crop_y1 = crop_y0 + y_sample_size

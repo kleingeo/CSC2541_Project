@@ -21,7 +21,7 @@ class Predictor:
                  target_folder,
                  ofolder,
                  opt,
-                 testing_direction = True ):
+                 testing_direction=True):
         """
         Initializer for the Predictor code
         :param model_folder: The folder that has the json and weights file saved
@@ -30,11 +30,8 @@ class Predictor:
         :param ofolder: Where everything is saved at the end
         :param opt: The optimizer used.
         """
-        json_file_name = \
-            [i for i in os.listdir(model_folder) if i.endswith('json')][0]
-        weights_file_name = \
-            [i for i in os.listdir(model_folder) if i.startswith(
-                'model_best')][0]
+        json_file_name = [i for i in os.listdir(model_folder) if i.endswith('json')][0]
+        weights_file_name = [i for i in os.listdir(model_folder) if i.startswith('model_best')][0]
         json_file = open(''.join([model_folder, '/', json_file_name]))
         loaded_model_json = json_file.read()
         json_file.close()
@@ -46,10 +43,14 @@ class Predictor:
                            optimizer=opt)
         print('Model is ready to predict.')
 
+        num_classes = self.model.input_shape[1]
+
         gen = generator.DGenerator(data_dir=data_folder,
                                    target_dir=target_folder,
                                    batch_size=1,
-                                   regular=testing_direction)
+                                   regular=testing_direction,
+                                   shuffle=False,
+                                   num_classes=num_classes)
 
         gen.batch_size = gen.__len__()
 
@@ -67,8 +68,15 @@ class Predictor:
         WARNING: This file is very hardcoded. Going to need to do some
         editing to generalize it.
         """
-        self.y_pred = self.model.predict(self.test_set,
-                                         verbose=1)
+        self.y_pred = self.model.predict(self.test_set)
+
+        eval = self.model.evaluate(self.test_set, self.test_tar)
+
+        print(eval)
+
+        if os.path.exists(self.ofolder) is False:
+
+            os.makedirs(self.ofolder)
 
         np.save(''.join([self.ofolder, '/pred_TestSet.npy']), self.y_pred)
 
@@ -76,23 +84,24 @@ class Predictor:
 
         for index in range(self.y_pred.shape[0]):
             # prep the data
-            predicted_volume = self.y_pred[index, :, :, :].astype('float32')
+            predicted_volume = self.y_pred[index, 0, :, :].astype('float32')
             predicted_volume[predicted_volume >= 0.5] = 1
             predicted_volume[predicted_volume < 0.5] = 0
-            target_volume = self.test_tar[index, :, :, :]
+            target_volume = self.test_tar[index, 0, :, :]
 
-            dice_coefficient = \
-                dice_coefficient_numpy_arrays(target_volume[1, :, :],
-                                              predicted_volume[1, :, :])
-            error_data_dictionary = \
-                {self.columns[0]: index,
-                 self.columns[1]: dice_coefficient}
+            dice_coefficient = dice_coefficient_numpy_arrays(target_volume[:, :],
+                                                             predicted_volume[:, :])
+
+
+            error_data_dictionary = {self.columns[0]: index,
+                                     self.columns[1]: dice_coefficient}
+
             self.evaluation_data_frame = self.evaluation_data_frame.append(
                 error_data_dictionary,
                 ignore_index=True)
 
 
-        dice_coefs_BG = self.evaluation_data_frame[self.columns[1]]
+        dice_coefs_BG = self.evaluation_data_frame[self.columns[1]].values
         print('Mean DSC= ' + str(np.mean(dice_coefs_BG)))
         print('Std DSC= ' + str(np.std(dice_coefs_BG)))
 

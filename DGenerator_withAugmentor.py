@@ -25,11 +25,11 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
                  target_dir=r'D:\prostate_data\Task05_Prostate\labelsTr\\',
                  aug_folder = r'X:\2019-03-30-CSC2541Project\UNetAugmentor\\',
                  batch_size = 20,
-                 shuffle = True,
+                 shuffle=False,
                  num_channels = 1,
                  num_classes = 2,
                  input_size = (128, 128),
-                 regular = True):
+                 regular=True):
         """
         Initialization for data generator
         :param data_dir: (dir of numpy arrays) Directory training data is saved.
@@ -46,11 +46,8 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
             target masks
         """
 
-        json_file_name = \
-            [i for i in os.listdir(aug_folder) if i.endswith('json')][0]
-        weights_file_name = \
-            [i for i in os.listdir(aug_folder) if i.startswith(
-                'model_best')][0]
+        json_file_name = [i for i in os.listdir(aug_folder) if i.endswith('json')][0]
+        weights_file_name = [i for i in os.listdir(aug_folder) if i.startswith('model_best')][0]
         json_file = open(''.join([aug_folder, '/', json_file_name]))
         loaded_model_json = json_file.read()
         json_file.close()
@@ -59,7 +56,7 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
         # Load the weights to the model
         model.load_weights(''.join([aug_folder, '/', weights_file_name]))
         model.compile(loss=mse, metrics=[mse],
-                           optimizer='ADAM')
+                      optimizer='ADAM')
         print('Model is ready to synthesize data.')
 
         self.data_dir = data_dir
@@ -73,15 +70,14 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
 
 
         # list all data to be used
-        self.data_files = [''.join([self.data_dir,i]) for i in
-                           os.listdir(data_dir)]
-        self.target_files = [''.join([self.target_dir, i]) for i in
-                           os.listdir(target_dir)]
-        assert len(self.data_files) == len(self.target_files), \
-            'Sample list and target list are different sizes.'
+        self.data_files = [''.join([self.data_dir, i]) for i in os.listdir(data_dir)]
+        self.target_files = [''.join([self.target_dir, i]) for i in os.listdir(target_dir)]
 
-        self.training_data, self.target_data = Utils.PreprocessTrainingData(
-            self.data_files, self.target_files, input_size)
+        assert len(self.data_files) == len(self.target_files), 'Sample list and target list are different sizes.'
+
+        self.training_data, self.target_data = Utils.PreprocessTrainingData(self.data_files,
+                                                                            self.target_files,
+                                                                            input_size)
 
         # Build atlas for the augmentor UNet
         atlas = np.zeros(input_size)
@@ -90,18 +86,25 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
             atlas = atlas + self.target_data[i]
 
         atlas = np.divide(atlas, len(self.target_data))
+
         n_sam = len(self.training_data)
-        thrs = np.random.random((n_sam))
+
+        thrs = np.random.random(n_sam)
+
         for i in range(n_sam):
-            map = np.zeros((1,2,128,128))
-            map[0,1,:,:] = (atlas>thrs[i]).astype('uint8')
-            map[0,0,:,:] = np.ones((128, 128)) - (atlas>thrs[i]).astype('uint8')
+            map = np.zeros((1, 2, 128, 128))
+
+            map[0, 1, :, :] = (atlas > thrs[i]).astype('uint8')
+            map[0, 0, :, :] = np.ones((128, 128)) - (atlas > thrs[i]).astype('uint8')
+
             img = model.predict(map)
 
-            self.training_data.append(np.around(img[0,0,:,:]*255))
-            self.target_data.append(map[0,1,:,:])
+            self.training_data.append(np.around(img[0, 0, :, :] * 255))
+
+            self.target_data.append(map[0, 1, :, :])
 
         self.idxs = np.arange(len(self.training_data))
+
         self.on_epoch_end()
 
     def __len__(self):
@@ -118,20 +121,23 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
         indexes = self.idxs[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         # Find list of samples and corresponding targets
-        if isinstance(self.data_files, list) and \
-                isinstance(self.target_files, list):
+        if isinstance(self.data_files, list) and isinstance(self.target_files, list):
             sample_list_temp = [self.training_data[k] for k in indexes]
             target_list_temp = [self.target_data[k] for k in indexes]
 
         # Generate data
-        batch_x_data, batch_y_data = self.data_generation(sample_list_temp,
-                                                            target_list_temp)
+
+        batch_x_data, batch_y_data = self.data_generation(sample_list_temp, target_list_temp)
 
         ### If you need to change data types, do this here
         batch_x_data = batch_x_data.astype(np.float32)
         batch_y_data = batch_y_data.astype(np.uint8)
 
-        return batch_x_data, batch_y_data
+        if self.reg == True:
+            return batch_x_data, batch_y_data
+
+        else:
+            return batch_y_data, batch_x_data
 
     def data_generation(self, sample_list, target_list):
         """
@@ -155,13 +161,13 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
 
         # Generate data
         for i1 in range(len(sample_list)):
-            batch_x_data[i1,0,:,:] = sample_list[i1]
-            batch_y_data[i1,0,:,:] = (target_list[i1]==0).astype(np.uint8)
+            batch_x_data[i1, 0, :, :] = sample_list[i1]
+            batch_y_data[i1, 0, :, :] = (target_list[i1] == 0).astype(np.uint8)
             batch_y_data[i1, 1, :, :] = target_list[i1]
-        if self.reg ==True:
-            return batch_x_data, batch_y_data
-        else:
-            return batch_y_data, batch_x_data
+
+
+        return batch_x_data, batch_y_data
+
 
     def on_epoch_end(self):
         """

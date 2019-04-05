@@ -9,7 +9,7 @@ WARNING: This file is very hardcoded. Going to need to do some
 
 import UNet
 from keras.utils import multi_gpu_model
-from TrainingUtils import My_new_loss
+from TrainingUtils import My_new_loss, dice_loss, dice_coef, dice_1, dice_2
 import DGenerator as generator
 import DGenerator_withAugmentor as gen_wAug
 import MyCBK
@@ -17,22 +17,25 @@ import TrainerFileNamesUtil as TrainerFileNamesUtil
 
 class Trainer():
     def __init__(self,
-                 batch_folder,
-                 target_folder,
+                 batch_folder_train,
+                 target_folder_train,
                  ofolder,
                  samples_per_card=None,
                  epochs=50,
                  batch_size=50,
                  gpus_used=1,
-                 training_direction = True,
-                 num_classes =2,
+                 training_direction=True,
+                 num_classes=1,
                  data_aug=False,
-                 train_aug = False,
-                 aug_folder=None):
+                 train_aug=False,
+                 aug_folder=None,
+                 batch_folder_val=None,
+                 target_folder_val=None,
+                 ):
         """
         The initializer for the trainer object
-        :param batch_folder: folder where training data is stored
-        :param target_folder: fodler where the training targets are stored
+        :param batch_folder_train: folder where training data is stored
+        :param target_folder_train: fodler where the training targets are stored
         :param ofolder: the output folder where everything is saved in the end
         :param samples_per_card: the desired spread of training samples to
         each gpu card
@@ -43,8 +46,12 @@ class Trainer():
         :param model_type: Model type to be trained. Unet or Inception Unet
         'IUNet' or 'UNet'
         """
-        self.batch_folder = batch_folder
-        self.target_folder = target_folder
+        self.batch_folder_train = batch_folder_train
+        self.target_folder_train = target_folder_train
+
+        self.batch_folder_val = batch_folder_val
+        self.target_folder_val = target_folder_val
+
         self.ofolder = ofolder
         self.direction = training_direction
         self.num_classes = num_classes
@@ -65,8 +72,8 @@ class Trainer():
         self.gpus_used = gpus_used
 
     def train_the_model(self,
-                        t_opt = 'ADAM',
-                        loss = My_new_loss,
+                        t_opt='ADAM',
+                        loss=dice_loss,
                         t_depth=5,
                         t_dropout=0
                         ):
@@ -80,21 +87,56 @@ class Trainer():
         """
         ### Main code
         # start up the data generator
-        if self.data_aug==True:
-            gen = gen_wAug.DGenerator_withAugmentor(data_dir=self.batch_folder,
-                                                    target_dir=self.target_folder,
-                                                    batch_size=self.batch_size,
-                                                    regular = self.direction,
-                                                    aug_folder=self.aug_folder)
+        if self.data_aug == True:
+            gen_train = gen_wAug.DGenerator_withAugmentor(data_dir=self.batch_folder_train,
+                                                          target_dir=self.target_folder_train,
+                                                          batch_size=self.batch_size,
+                                                          regular=self.direction,
+                                                          aug_folder=self.aug_folder
+                                                          )
+
+            if (self.batch_folder_val is not None) and (self.target_folder_val is not None):
+                gen_val = gen_wAug.DGenerator_withAugmentor(data_dir=self.batch_folder_val,
+                                                              target_dir=self.target_folder_val,
+                                                              batch_size=self.batch_size,
+                                                              regular=self.direction,
+                                                              aug_folder=self.aug_folder)
+
+                validation_steps = gen_val.__len__()
+
+            else:
+                gen_val = None
+                validation_steps = None
+
+
+
         else:
-            gen = generator.DGenerator(data_dir=self.batch_folder,
-                                       target_dir=self.target_folder,
-                                       batch_size=self.batch_size,
-                                       regular = self.direction)
+            gen_train = generator.DGenerator(data_dir=self.batch_folder_train,
+                                             target_dir=self.target_folder_train,
+                                             batch_size=self.batch_size,
+                                             regular=self.direction,
+                                             shuffle=True,
+                                             augment_data=False)
+
+            if (self.batch_folder_val is not None) and (self.target_folder_val is not None):
+
+                gen_val = generator.DGenerator(data_dir=self.batch_folder_val,
+                                               target_dir=self.target_folder_val,
+                                               batch_size=self.batch_size,
+                                               regular=self.direction,
+                                               shuffle=False,
+                                               augment_data=False)
+
+                validation_steps = gen_val.__len__()
+
+            else:
+                gen_val = None
+                validation_steps = None
+
 
         # load the model
         if self.train_aug == True:
-            model = UNet.get_unet(num_classes = 1,
+            model = UNet.get_unet(num_classes=1,
                                   num_seq=2,
                                   depth=t_depth,
                                   dropout=t_dropout)
@@ -102,7 +144,7 @@ class Trainer():
             model = UNet.get_unet()
 
         # setup a multi GPU trainer
-        if self.gpus_used>1:
+        if self.gpus_used > 1:
             gmodel = multi_gpu_model(model, gpus=self.gpus_used)
             gmodel.compile(optimizer=t_opt,
                            loss=loss,
@@ -117,11 +159,13 @@ class Trainer():
         cbk = MyCBK.MyCBK(model, self.ofolder)
 
         # begin training
-        gmodel.fit_generator(gen,
+        gmodel.fit_generator(gen_train,
                              epochs=self.epochs,
                              verbose=1,
-                             steps_per_epoch=gen.__len__(),
-                             workers=20,
+                             steps_per_epoch=gen_train.__len__(),
+                             validation_data=gen_val,
+                             validation_steps=validation_steps,
+                             workers=10,
                              use_multiprocessing=True,
                              callbacks=[cbk])
 
