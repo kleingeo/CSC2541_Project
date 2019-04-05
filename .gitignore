@@ -55,6 +55,7 @@ docs/_build/
 target/
 
 # Pycharm Project Folder
+.idea/*
 .idea/
 
 # Ignoring Prostate data files
