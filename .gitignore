@@ -48,9 +48,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-
 # Sphinx documentation
 docs/_build/
 
@@ -58,6 +55,7 @@ docs/_build/
 target/
 
 # Pycharm Project Folder
+.idea/*
 .idea/
 
 # Ignoring Prostate data files
@@ -67,5 +65,8 @@ prostate_data/
 *.npy
 
 # Ignore model weights
-# *.h5
-# *.h5py
+*.h5
+
+# Ignore images
+*.png
+*.jpg
