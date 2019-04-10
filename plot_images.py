@@ -9,14 +9,16 @@ import DGenerator as generator
 from TrainingUtils import dice_loss, dice_coef, dice_coefficient_numpy_arrays
 from keras.models import model_from_json
 
+
 if __name__ == '__main__':
 
-    data_dir = 'X:/prostate_data/Task05_Prostate/imagesTs/'
+    data_dir = 'Y:/prostate_data/Task05_Prostate/imagesTs/'
 
-    target_dir = 'X:/prostate_data/Task05_Prostate/labelsTs/'
+    target_dir = 'Y:/prostate_data/Task05_Prostate/labelsTs/'
 
     # model_folder = 'Z:/2019-03-30-CSC2541Project/UNet_regular_grey2/'
-    model_folder = 'Z:/2019-03-30-CSC2541Project/UNet_regularWAugcGAN_grey2/'
+    model_folder = r'Y:\GeoffKlein\CSC2541_Project\ModelOutputs' \
+                   r'\UNet_reuglarWAugcGAN_rev2\1500_syn_samples\\'
 
 
     json_file_name = [i for i in os.listdir(model_folder) if i.endswith('json')][0]
@@ -55,8 +57,9 @@ if __name__ == '__main__':
         predicted_volume = y_pred[index, :, :, :].astype('float32')
         target_volume = test_tar[index, :, :, :]
 
-        dice_coefficient_hold = dice_coefficient_numpy_arrays(target_volume[1, :, :],
-                                                              predicted_volume[1, :, :])
+        dice_coefficient_hold = dice_coefficient_numpy_arrays(target_volume[
+                                                              :, :,0],
+                                                              predicted_volume[:, :,0])
 
         dice_coefficient.append(dice_coefficient_hold)
 
@@ -91,9 +94,9 @@ if __name__ == '__main__':
 
         # print(idx_hold)
 
-        ground_truth_data = test_tar[idx_hold, 1, :, :]
-        pred_data = y_pred[idx_hold, 1, :, :]
-        test_data = test_set[idx_hold, 0, :, :]
+        ground_truth_data = test_tar[idx_hold, :, :,0]
+        pred_data = y_pred[idx_hold, :, :,0]
+        test_data = test_set[idx_hold, :, :,0]
 
 
         ax1 = fig.add_subplot(2, 2, sub_plot_idx + 1)
@@ -135,7 +138,7 @@ if __name__ == '__main__':
     # ax.legend()
     # plt.suptitle('Axial Vertebral Bodies and Associated Segmentations', fontsize=14, fontname='Times New Roman')
     plt.show()
-
+    print('done')
     # plt.savefig('segmentation_best_regular.png', bbox_inches='tight', dpi=650)
     #
     # plt.savefig('segmentation_best.svg', box_inches='tight', dpi=650)
