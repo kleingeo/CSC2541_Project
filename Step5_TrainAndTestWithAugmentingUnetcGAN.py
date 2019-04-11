@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     for num_syn_data in num_syn_data_vec:
 
-        ofolder = 'ModelOutputs/UNet_reuglarWAugcGAN_rev2/{}_syn_samples/'.format(int(num_syn_data))
+        ofolder = 'ModelOutputs/UNet_regularWAugcGAN_rev2/{}_syn_samples/'.format(int(num_syn_data))
 
         if os.path.exists(ofolder) is False:
 
