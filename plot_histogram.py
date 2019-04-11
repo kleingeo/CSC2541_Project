@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
 
-    csv_dir = 'UNet_regularWAugcGAN_grey2/test_results/evaluation_results.csv'
+    csv_dir = 'ModelOutputs/UNet_regularWAugcGAN_rev2/1500_syn_samples/test_results/evaluation_results.csv'
 
     df = pd.read_csv(csv_dir, index_col=False)
 
