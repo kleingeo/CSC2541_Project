@@ -4,28 +4,22 @@ https://github.com/eriklindernoren/Keras-GAN/blob/master/pix2pix/pix2pix.py
 '''
 
 from __future__ import print_function, division
-import scipy
 
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D
+from keras.layers import Input, Concatenate
+from keras.layers import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
+from keras.layers.convolutional import Conv2D
+from keras.models import Model
 from keras.optimizers import Adam
 import datetime
 import matplotlib.pyplot as plt
-import sys
+
 import numpy as np
 import os
 import DGenerator as gen
 from keras.models import model_from_json
-import tensorflow as tf
-from keras import backend as K
 import TrainerFileNamesUtil as TrainerFileNamesUtil
 
-# K.set_image_dim_ordering('th')
-# K.set_image_data_format('channels_first')
 
 plt.switch_backend('agg')
 
@@ -70,6 +64,7 @@ class Pix2Pix():
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
+
         self.discriminator.compile(loss='mse',
                                    optimizer=optimizer,
                                    metrics=['accuracy'])
@@ -137,7 +132,6 @@ class Pix2Pix():
         d2 = d_layer(d1, self.df*2)
         d3 = d_layer(d2, self.df*4)
         d4 = d_layer(d3, self.df*8)
-        # d5 = d_layer(d4, self.df*16)
 
         validity = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
@@ -235,8 +229,3 @@ class Pix2Pix():
         plt.close()
 
 
-if __name__ == '__main__':
-    gan = Pix2Pix()
-    gan.train(epochs=1, batch_size=1, sample_interval=5)
-
-    print('done')

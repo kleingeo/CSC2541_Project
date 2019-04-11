@@ -49,7 +49,7 @@ class Predictor:
         self.model.load_weights(''.join([model_folder, '/', weights_file_name]))
         self.model.compile(loss=dice_loss, metrics=[dice_coef],
                            optimizer=opt)
-        print('Model is ready to predict.')
+        # print('Model is ready to predict.')
 
         gen = generator.DGenerator(data_dir=data_folder,
                                    target_dir=target_folder,

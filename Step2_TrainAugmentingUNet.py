@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     a.train_the_model(t_opt=K.optimizers.adam(lr=1e-4),
                       loss=K.losses.mae,
-                      t_depth=4,
-                      t_dropout=0.5)
+                      t_dropout=0)
 
     print('done')

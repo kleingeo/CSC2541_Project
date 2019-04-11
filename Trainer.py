@@ -15,9 +15,6 @@ import DGenerator_withAugmentor as gen_wAug
 import MyCBK
 import TrainerFileNamesUtil as TrainerFileNamesUtil
 
-# import keras.backend as K
-# K.set_image_dim_ordering('th')
-# K.set_image_data_format('channels_first')
 
 class Trainer():
     def __init__(self,
@@ -97,7 +94,6 @@ class Trainer():
     def train_the_model(self,
                         t_opt='ADAM',
                         loss=dice_loss,
-                        t_depth=5,
                         t_dropout=0
                         ):
         """
@@ -163,9 +159,9 @@ class Trainer():
         if self.direction == True:
             model = UNet.get_unet()
         else:
-            model = UNet.get_unet(batch_normalization=True)
+            model = UNet.get_unet(dropout=t_dropout,
+                                  batch_normalization=True)
 
-        # model = UNet.get_unet()
 
         # setup a multi GPU trainer
         if self.gpus_used > 1:

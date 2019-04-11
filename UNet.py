@@ -9,11 +9,7 @@ given parameters.
 from keras.layers import Input, MaxPooling2D, Conv2D, BatchNormalization, \
     Activation, Deconvolution2D, UpSampling2D, concatenate, Dropout
 from keras.models import Model
-from keras import backend as K
 import keras
-
-# K.set_image_dim_ordering('th')
-# K.set_image_data_format('channels_first')
 
 def get_unet(img_x=128,
              img_y=128,
@@ -29,10 +25,6 @@ def get_unet(img_x=128,
              num_classes=1,
              num_seq=1,
              reg_const=None):
-
-
-    # K.set_image_dim_ordering('th')
-    # K.set_image_data_format('channels_first')
 
     model_inputs = Input((img_x, img_y, num_seq))
 

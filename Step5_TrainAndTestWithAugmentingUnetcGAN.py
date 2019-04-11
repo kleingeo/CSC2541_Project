@@ -51,11 +51,6 @@ if __name__ == "__main__":
                     batch_folder_val=data_dir_val, target_folder_val=target_dir_val
                     )
 
-        # a = Trainer(data_dir, target_dir, ofolder, samples_per_card=int(50/4),
-        #             epochs=50, gpus_used=4,
-        #             batch_size=None, training_direction=True,
-        #             data_aug=True,
-        #             aug_folder=aug_folder)
 
         a.train_the_model(t_opt=K.optimizers.adam(lr=1e-5))
 

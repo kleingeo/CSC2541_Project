@@ -1,5 +1,4 @@
 from Pix2Pix import Pix2Pix
-import keras as K
 
 import tensorflow as tf
 import numpy as np
@@ -9,10 +8,13 @@ if __name__ == "__main__":
 
     # Train the Augmentation Model using a cGAN
 
-    data_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
-               '/imagesTr/'
-    target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate' \
-                 '/labelsTr/'
+    # data_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate/imagesTr/'
+    # target_dir = '/jaylabs/amartel_data2/prostate_data/Task05_Prostate/labelsTr/'
+    #
+
+    data_dir = 'D:/prostate_data/Task05_Prostate/imagesTr/'
+    target_dir = 'D:/prostate_data/Task05_Prostate/labelsTr/'
+
     pretrained_model = 'ModelOutputs/UNetAugmentor_rev3/'
     ofolder = 'ModelOutputs/cGANUnetAugmentor_rev2/'
 
@@ -25,6 +27,6 @@ if __name__ == "__main__":
                    ofolder=ofolder,
                    batch_size=32)
 
-    cgan.train(epochs=20, sample_interval=1000)
+    # cgan.train(epochs=20, sample_interval=1000)
 
     print('done')
