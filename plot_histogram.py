@@ -5,7 +5,11 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
 
+<<<<<<< Updated upstream
     csv_dir = r'Y:\GeoffKlein\CSC2541_Project\ModelOutputs\UNet_regular_rev2\test_results\evaluation_results.csv'
+=======
+    csv_dir = 'ModelOutputs/UNet_regularWAugcGAN_rev2/1500_syn_samples/test_results/evaluation_results.csv'
+>>>>>>> Stashed changes
 
     df = pd.read_csv(csv_dir, index_col=False)
 
