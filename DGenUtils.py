@@ -192,32 +192,6 @@ def crop_images_centered_over_label(img, label, sample_size):
     crop_x0 = xmin - hx0
     crop_y0 = ymin - hy0
 
-    # # Check indicies for cropping to ensure they are within the image
-    #
-    # # Check to see if ending index is outside image
-    # if crop_x0 + x_sample_size > img.shape[0]:
-    #
-    #     # If crop ending index is outside the image, adjust initial index based on difference
-    #     diff_x0 = crop_x0 - (img.shape[0] - x_sample_size)
-    #
-    #     crop_x0 = crop_x0 - diff_x0
-    #
-    # # Repeat for y direction
-    # if crop_y0 + y_sample_size > img.shape[1]:
-    #     diff_y0 = crop_y0 - (img.shape[1] - y_sample_size)
-    #
-    #     crop_y0 = crop_y0 - diff_y0
-    #
-    # # Ensure initial crop does not have a negative index based on adjustment. If so, set to zero
-    # if crop_x0 < 0:
-    #     crop_x0 = 0
-    #
-    # if crop_y0 < 0:
-    #     crop_y0 = 0
-
-    # crop_x1 = crop_x0 + x_sample_size
-    # crop_y1 = crop_y0 + y_sample_size
-
     crop_x1 = xmax + hx1
     crop_y1 = ymax + hy1
 
@@ -251,29 +225,6 @@ def crop_images_centered_over_label_rev2(img, label, sample_size):
     # Initial index for cropping
     crop_x0 = xmin - hx
     crop_y0 = ymin - hy
-
-    # Check indicies for cropping to ensure they are within the image
-
-    # # Check to see if ending index is outside image
-    # if crop_x0 + x_sample_size > img.shape[0]:
-    #
-    #     # If crop ending index is outside the image, adjust initial index based on difference
-    #     diff_x0 = crop_x0 - (img.shape[0] - x_sample_size)
-    #
-    #     crop_x0 = crop_x0 - diff_x0
-    #
-    # # Repeat for y direction
-    # if crop_y0 + y_sample_size > img.shape[1]:
-    #     diff_y0 = crop_y0 - (img.shape[1] - y_sample_size)
-    #
-    #     crop_y0 = crop_y0 - diff_y0
-    #
-    # # Ensure initial crop does not have a negative index based on adjustment. If so, set to zero
-    # if crop_x0 < 0:
-    #     crop_x0 = 0
-    #
-    # if crop_y0 < 0:
-    #     crop_y0 = 0
 
     crop_x1 = crop_x0 + x_sample_size
     crop_y1 = crop_y0 + y_sample_size

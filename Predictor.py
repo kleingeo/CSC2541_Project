@@ -22,14 +22,22 @@ class Predictor:
                  ofolder,
                  opt,
                  testing_direction=True):
-        """
-        Initializer for the Predictor code
-        :param model_folder: The folder that has the json and weights file saved
-        :param batch_file: The file you wish to evaluate
-        :param target_file: The target of the file you wish to evaluate
-        :param ofolder: Where everything is saved at the end
-        :param opt: The optimizer used.
-        """
+        '''
+        Initialization criteria
+        :param model_folder: directory where weights and JSON file are saved
+        of the model.
+        :param data_folder: directory where testing data is stored. File
+        Format: nii.gz
+        :param target_folder: corresponding ground truth segmentations for
+        the testing data. File Format: nii.gz
+        :param ofolder: Output directory to save the numpy array and csv of
+        DSC for each test subject
+        :param opt: Optimizer used to trian the model, so it can be compiled.
+        :param testing_direction: Direction that the generator is initialized to
+        perform. True=input image, output segmentation, False=input
+        segmentation, output image.
+        '''
+
         json_file_name = [i for i in os.listdir(model_folder) if i.endswith('json')][0]
         weights_file_name = [i for i in os.listdir(model_folder) if i.startswith('model_best')][0]
         json_file = open(''.join([model_folder, '/', json_file_name]))

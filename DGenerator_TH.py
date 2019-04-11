@@ -4,6 +4,7 @@
 author: G.Kuling
 Description: This is a data generator that will be used to process batches
 that are made to train a network to segmentations of the prostate in T2w MRI.
+This uses theano version of keras, with channels first.
 """
 
 import keras
@@ -17,7 +18,7 @@ import DGenUtils as Utils
 np.random.seed(1)
 tf.set_random_seed(1)
 
-class DGenerator(keras.utils.Sequence):
+class DGenerator_TH(keras.utils.Sequence):
     def __init__(self,
                  data_dir=r'D:\prostate_data\Task05_Prostate\imagesTr\\',
                  target_dir=r'D:\prostate_data\Task05_Prostate\labelsTr\\',
@@ -101,30 +102,22 @@ class DGenerator(keras.utils.Sequence):
         :return: a bathc of training images and a batch of target segmentations
         """
         # Initialization
-
-
         batch_x_data = np.empty((self.batch_size,
+                                 self.num_channels,
                                  self.img_size[0],
-                                 self.img_size[1],
-                                 self.num_channels
+                                 self.img_size[1]
                                  ))
 
         batch_y_data = np.empty((self.batch_size,
+                                 self.num_classes,
                                  self.img_size[0],
-                                 self.img_size[1],
-                                 self.num_classes
+                                 self.img_size[1]
                                  ))
 
         # Generate data
         for i1 in range(len(sample_list)):
-
-            x_data = sample_list[i1]
-
-            y_data = target_list[i1]
-
-            batch_x_data[i1, :, :, 0] = x_data
-
-            batch_y_data[i1, :, :, 0] = y_data
+            batch_x_data[i1, 0, :, :] = sample_list[i1]
+            batch_y_data[i1, 0, :, :] = target_list[i1]
 
         return batch_x_data, batch_y_data
 
@@ -137,7 +130,7 @@ class DGenerator(keras.utils.Sequence):
 
 
 if __name__ == '__main__':
-    a = DGenerator(regular=True)
+    a = DGenerator_TH(regular=True)
 
     b = a.__getitem__(0)
 
