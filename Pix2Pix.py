@@ -1,3 +1,8 @@
+'''
+This script was adapted from a github page for implementing GANS in Keras
+https://github.com/eriklindernoren/Keras-GAN/blob/master/pix2pix/pix2pix.py
+'''
+
 from __future__ import print_function, division
 import scipy
 

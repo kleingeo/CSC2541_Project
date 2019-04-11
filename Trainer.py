@@ -37,20 +37,32 @@ class Trainer():
                  target_folder_val=None,
                  num_syn_data=None
                  ):
-        """
-        The initializer for the trainer object
-        :param batch_folder_train: folder where training data is stored
-        :param target_folder_train: fodler where the training targets are stored
-        :param ofolder: the output folder where everything is saved in the end
-        :param samples_per_card: the desired spread of training samples to
-        each gpu card
-        :param epochs:The amount of epochs to be used for training
-        :param batch_size: the batch size desired
-        :param gpus_used: the amount of gpu cards used during training
-        :param mode: Option of input type. '2Ch', 'WOFS, opr 'FS'
-        :param model_type: Model type to be trained. Unet or Inception Unet
-        'IUNet' or 'UNet'
-        """
+        '''
+        Initialization criteria
+        :param batch_folder_train: directory of training data. File Format:
+        nii.gz
+        :param target_folder_train:target segmentation of training data. File Formamt: nii.gz
+        :param ofolder: output folder for saving weights, and JSON file.
+        :param samples_per_card: amount of training examples to be used on
+        each GPU card. Int
+        :param epochs: amount of epochs to be used in training. Int
+        :param batch_size: batch size used during training. Int
+        :param gpus_used: Amount of GPUs available for training. Int
+        :param training_direction: direction that training occurs. See
+        DGEnerator. regular
+        :param num_classes: number of classes being labeled in the image. Int
+        :param data_aug: True if you want to auugent the data using a
+        generator.
+        :param train_aug: True if you want to train the UNet in reverse to be a generator.
+        :param aug_folder: The folder the generator weights and JSON files
+        are saved
+        :param batch_folder_val: Folder where testing data is kept,
+        if validation is needed during training.
+        :param target_folder_val: corresponding ground truth to the test
+        folder.
+        :param num_syn_data: amount of synthetic training exampels to made
+        with the generator.
+        '''
 
 
 
@@ -130,8 +142,7 @@ class Trainer():
                                              target_dir=self.target_folder_train,
                                              batch_size=self.batch_size,
                                              regular=self.direction,
-                                             shuffle=True,
-                                             augment_data=True)
+                                             shuffle=True)
 
             if (self.batch_folder_val is not None) and (self.target_folder_val is not None):
 
@@ -139,8 +150,7 @@ class Trainer():
                                                target_dir=self.target_folder_val,
                                                batch_size=self.batch_size,
                                                regular=self.direction,
-                                               shuffle=False,
-                                               augment_data=False)
+                                               shuffle=False)
 
                 validation_steps = gen_val.__len__()
 

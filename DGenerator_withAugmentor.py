@@ -31,21 +31,23 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
                  input_size = (128, 128),
                  regular=True,
                  n_sam=None):
-        """
-        Initialization for data generator
-        :param data_dir: (dir of numpy arrays) Directory training data is saved.
-            Individual samples in each npy array.
-        :param target_dir: (dir of numpy arrays) Directory training targets are
-        saved. Individual samples in each npy array.
-        :param batch_size: (int) Size of batches to be produced each time
-            __getitem__ is called
-        :param mode: (str) mode of input type. Option=['2Ch', 'WOFS', 'FS']
-        :param img_size: (list of ints) the dimensions of the input
-        :param shuffle: (bool) whether to shuffle training examples between
-            each epoch
-        :param num_classes: (int) number of classes that are labeled in the
-            target masks
-        """
+        '''
+        Initialization criteria
+        :param data_dir: directory of training scans. File Format: nii.gz
+        :param target_dir: directory of ground truth segmentations of the
+        training set. File Format: nii.gz
+        :param aug_folder: directory where weights and json file are saved
+        for the generator.
+        :param batch_size: Batch size. Int
+        :param shuffle: Shufflinng between epochs. Boolean
+        :param num_channels: number of classes in the target segmentations. Int
+        :param num_classes: number of input channels of the training data. Int
+        :param input_size: input image size. Tuple
+        :param regular: direction of training. True=input of image, output
+        segmentation, False= input segmentation, output image.
+        :param n_sam: amount of synthetic data samples to be made for
+        augmentation. Int
+        '''
 
         json_file_name = [i for i in os.listdir(aug_folder) if i.endswith('json')][0]
         weights_file_name = [i for i in os.listdir(aug_folder) if i.startswith('model_best')][0]
@@ -154,18 +156,6 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
         :return: a bathc of training images and a batch of target segmentations
         """
         # Initialization
-        # batch_x_data = np.empty((self.batch_size,
-        #                          self.num_channels,
-        #                          self.img_size[0],
-        #                          self.img_size[1]
-        #                          ))
-        #
-        # batch_y_data = np.empty((self.batch_size,
-        #                          self.num_classes,
-        #                          self.img_size[0],
-        #                          self.img_size[1]
-        #                          ))
-
 
         batch_x_data = np.empty((self.batch_size,
                                  self.img_size[0],
@@ -181,12 +171,8 @@ class DGenerator_withAugmentor(keras.utils.Sequence):
 
         # Generate data
         for i1 in range(len(sample_list)):
-            # batch_x_data[i1, 0, :, :] = sample_list[i1]
-            # # batch_y_data[i1, 0, :, :] = (target_list[i1] == 0).astype(np.uint8)
-            # batch_y_data[i1, 0, :, :] = target_list[i1]
 
             batch_x_data[i1, :, :, 0] = sample_list[i1]
-            # batch_y_data[i1, 0, :, :] = (target_list[i1] == 0).astype(np.uint8)
             batch_y_data[i1, :, :, 0] = target_list[i1]
 
 
