@@ -46,31 +46,28 @@ if __name__ == '__main__':
                                regular=True,
                                shuffle=False,
                                num_classes=1)
-    test_set, test_tar = gen.__getitem__(27)
+    test_set, test_tar = gen.__getitem__(5)
 
     pred_img_pretrain = model_pretrain.predict(test_tar)
     pred_img_cgan = model_cgan.predict(test_tar)
 
     fig = plt.figure(figsize=(15, 7))
 
-    ax1 = fig.add_subplot(1, 4, 1)
+    ax1 = fig.add_subplot(1, 3, 1)
     ax1.imshow(test_tar[0, :, :, 0])
     ax1.set_title('Original Segmentation')
     ax1.axis('off')
 
-    ax2 = fig.add_subplot(1, 4, 2)
-    ax2.imshow(test_set[0, :, :, 0])
-    ax2.set_title('Original Image')
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax2.imshow(pred_img_cgan[0, :, :, 0])
+    ax2.set_title('Synthetic Image')
     ax2.axis('off')
 
-    ax3 = fig.add_subplot(1, 4, 3)
-    ax3.imshow(pred_img_pretrain[0, :, :, 0])
-    ax3.set_title('Synthetic Image After Pre-Training')
+    ax3 = fig.add_subplot(1, 3, 3)
+    ax3.imshow(test_set[0, :, :, 0])
+    ax3.set_title('Original Image')
     ax3.axis('off')
 
-    ax4 = fig.add_subplot(1, 4, 4)
-    ax4.imshow(pred_img_cgan[0, :, :, 0])
-    ax4.set_title('Synthetic Image After cGAN')
-    ax4.axis('off')
-
     plt.show()
+
+    plt.savefig('../cGAN_val.png', bbox_inches='tight', dpi=650)
